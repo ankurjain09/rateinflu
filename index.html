@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrustReview - Verified Influencer Reviews</title>
+    
     <style>
         * {
             margin: 0;
@@ -36,6 +37,219 @@
             background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
             min-height: 100vh;
             color: var(--dark);
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            border: 3px solid var(--light-gray);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        /* Auth Modal */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-input {
+            padding: 0.75rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .auth-btn {
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .auth-divider {
+            text-align: center;
+            margin: 1rem 0;
+            color: var(--gray);
+        }
+
+        .google-btn {
+            background: white;
+            color: var(--dark);
+            border: 2px solid var(--light-gray);
+        }
+
+        .google-btn:hover {
+            background: var(--light-gray);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--gray);
+        }
+
+        .auth-switch a {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            background: var(--light-gray);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--gray);
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: var(--danger);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        /* User Profile Dropdown */
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid var(--light-gray);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            padding: 0.5rem;
+            min-width: 200px;
+            display: none;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--light-gray);
         }
 
         /* Page Toggle Buttons for Demo */
@@ -154,6 +368,8 @@
             font-weight: 600;
             transition: all 0.3s;
             box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+            cursor: pointer;
+            border: none;
         }
 
         .btn-primary:hover {
@@ -588,376 +804,6 @@
             transform: translateX(5px);
         }
 
-        /* PROFILE PAGE STYLES */
-        
-        /* Profile Header */
-        .profile-header {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-        }
-
-        .profile-header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            gap: 3rem;
-            align-items: center;
-            color: white;
-        }
-
-        .profile-avatar {
-            width: 150px;
-            height: 150px;
-            background: white;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: bold;
-            color: var(--primary);
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .profile-avatar .verified-badge {
-            width: 40px;
-            height: 40px;
-            font-size: 1.25rem;
-            top: -10px;
-            right: -10px;
-        }
-
-        .profile-details h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.125rem;
-        }
-
-        .profile-social-stats {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .social-stat {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-
-        .social-stat-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        /* Profile Navigation Tabs */
-        .profile-tabs {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-            display: flex;
-            gap: 1rem;
-        }
-
-        .tab-btn {
-            padding: 0.75rem 1.5rem;
-            background: transparent;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: var(--light-gray);
-        }
-
-        /* Services Section */
-        .services-section {
-            display: grid;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .service-card {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            transition: all 0.3s;
-        }
-
-        .service-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .service-header-detail {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .service-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .service-badges {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .badge {
-            padding: 0.375rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .badge-type {
-            background: var(--primary);
-            color: white;
-        }
-
-        .badge-price {
-            background: var(--success);
-            color: white;
-        }
-
-        .service-description {
-            color: var(--gray);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .service-stats {
-            display: flex;
-            gap: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--light-gray);
-        }
-
-        .service-stat {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .service-stat-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .service-stat-label {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        /* Reviews Section */
-        .reviews-section {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: var(--shadow);
-        }
-
-        .reviews-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .reviews-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .review-filters {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            background: var(--light-gray);
-            border: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Individual Review */
-        .review-card {
-            padding: 1.5rem;
-            border: 1px solid var(--light-gray);
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            transition: all 0.3s;
-        }
-
-        .review-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
-        }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
-        .reviewer-info {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .reviewer-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .reviewer-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .reviewer-name {
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .review-date {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        .review-rating {
-            display: flex;
-            gap: 0.25rem;
-        }
-
-        .review-service-tag {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: var(--light-gray);
-            border-radius: 6px;
-            font-size: 0.875rem;
-            color: var(--gray);
-            margin-bottom: 1rem;
-        }
-
-        .review-content {
-            color: var(--dark);
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .review-actions {
-            display: flex;
-            gap: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--light-gray);
-        }
-
-        .review-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: transparent;
-            border: 1px solid var(--light-gray);
-            border-radius: 8px;
-            font-size: 0.875rem;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .review-action-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Write Review Button */
-        .write-review-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .write-review-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 40px rgba(79, 70, 229, 0.5);
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -972,15 +818,6 @@
                 display: none;
             }
 
-            .profile-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .profile-social-stats {
-                justify-content: center;
-            }
-
             .demo-toggle {
                 top: auto;
                 bottom: 20px;
@@ -989,6 +826,37 @@
     </style>
 </head>
 <body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-content">
+            <button class="close-modal" onclick="closeAuthModal()">×</button>
+            <div class="auth-header">
+                <h2 id="authTitle">Sign In</h2>
+                <p id="authSubtitle">Access your account to write reviews</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            
+            <form id="authForm" class="auth-form">
+                <input type="email" id="emailInput" class="auth-input" placeholder="Email" required>
+                <input type="password" id="passwordInput" class="auth-input" placeholder="Password" required>
+                <input type="text" id="nameInput" class="auth-input" placeholder="Full Name" style="display: none;">
+                <button type="submit" class="auth-btn" id="authSubmitBtn">Sign In</button>
+            </form>
+            
+            <div class="auth-divider">OR</div>
+            
+            <button onclick="signInWithGoogle()" class="auth-btn google-btn">
+                Continue with Google
+            </button>
+            
+            <div class="auth-switch">
+                <span id="authSwitchText">Don't have an account?</span>
+                <a id="authSwitchLink" onclick="toggleAuthMode()">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Demo Toggle Buttons -->
     <div class="demo-toggle">
         <button class="demo-btn" onclick="showPage('home')">Home Page</button>
@@ -1009,7 +877,9 @@
                     <a href="#">Categories</a>
                     <a href="#">Top Rated</a>
                     <a href="#">How It Works</a>
-                    <a href="#" class="btn-primary">Submit Review</a>
+                    <div id="authContainer">
+                        <!-- Will be populated dynamically -->
+                    </div>
                 </div>
             </div>
         </nav>
@@ -1024,7 +894,7 @@
                 <div class="trust-indicators">
                     <div class="trust-indicator">
                         <div class="trust-indicator-icon">✓</div>
-                        <span>12,847 Verified Reviews</span>
+                        <span id="totalReviews">12,847 Verified Reviews</span>
                     </div>
                     <div class="trust-indicator">
                         <div class="trust-indicator-icon">🛡️</div>
@@ -1040,581 +910,578 @@
             <!-- Search and Filters -->
             <div class="search-section">
                 <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Search influencers, courses, or services...">
-                    <button class="search-btn">Search</button>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search influencers, courses, or services...">
+                    <button class="search-btn" onclick="searchInfluencers()">Search</button>
                 </div>
                 
-                <div class="categories">
-                    <div class="category-pill active">All Categories</div>
-                    <div class="category-pill">💪 Fitness</div>
-                    <div class="category-pill">💰 Trading</div>
-                    <div class="category-pill">🏠 Real Estate</div>
-                    <div class="category-pill">💄 Beauty</div>
-                    <div class="category-pill">💻 Tech</div>
-                    <div class="category-pill">📚 Education</div>
-                    <div class="category-pill">🎯 Marketing</div>
-                    <div class="category-pill">🧘 Wellness</div>
+                <div class="categories" id="categoriesContainer">
+                    <div class="category-pill active" data-category="all">All Categories</div>
+                    <div class="category-pill" data-category="fitness">💪 Fitness</div>
+                    <div class="category-pill" data-category="trading">💰 Trading</div>
+                    <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
+                    <div class="category-pill" data-category="beauty">💄 Beauty</div>
+                    <div class="category-pill" data-category="tech">💻 Tech</div>
+                    <div class="category-pill" data-category="education">📚 Education</div>
+                    <div class="category-pill" data-category="marketing">🎯 Marketing</div>
+                    <div class="category-pill" data-category="wellness">🧘 Wellness</div>
                 </div>
             </div>
 
             <!-- Cards Grid -->
-            <div class="cards-grid">
-                <!-- Card 1 - Highly Trusted -->
-                <div class="influencer-card" onclick="showPage('profile')">
-                    <div class="trust-badge trust-high">✓ Trusted</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">
-                                JD
-                                <div class="verified-badge">✓</div>
-                            </div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Jake Davis</div>
-                                <div class="influencer-niche">Fitness Coach</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge">
-                                        <div class="platform-icon instagram">IG</div>
-                                        <span>850K</span>
-                                    </div>
-                                    <div class="platform-badge">
-                                        <div class="platform-icon youtube">YT</div>
-                                        <span>320K</span>
-                                    </div>
-                                    <div class="platform-badge">
-                                        <div class="platform-icon tiktok">TT</div>
-                                        <span>1.2M</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-section">
-                        <div class="stat-item">
-                            <div class="stat-value">4.8</div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">1.2k</div>
-                            <div class="stat-label">Reviews</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">94%</div>
-                            <div class="stat-label">Recommend</div>
-                        </div>
-                    </div>
-
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">30-Day Bootcamp • <span class="service-price">$297</span></div>
-                            <div class="service-tag">1-on-1 Coaching • <span class="service-price">$150/mo</span></div>
-                            <div class="service-tag">Nutrition Guide • <span class="service-price">$47</span></div>
-                        </div>
-                    </div>
-
-                    <div class="review-snippet">
-                        <div class="review-stars">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                        </div>
-                        <div class="review-text">
-                            "Life-changing program! Lost 20 pounds and gained confidence. Jake's support is incredible..."
-                        </div>
-                        <div class="review-author">- Sarah M., 2 days ago</div>
-                    </div>
-
-                    <div class="card-action">
-                        View Full Profile
-                        <span class="arrow-icon">→</span>
-                    </div>
-                </div>
-
-                <!-- Additional Cards (simplified for space) -->
-                <div class="influencer-card" onclick="showPage('profile')">
-                    <div class="trust-badge trust-high">🌟 Rising</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">
-                                AK
-                                <div class="verified-badge">✓</div>
-                            </div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Alex Kumar</div>
-                                <div class="influencer-niche">Web Developer</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge">
-                                        <div class="platform-icon youtube">YT</div>
-                                        <span>850K</span>
-                                    </div>
-                                    <div class="platform-badge">
-                                        <div class="platform-icon twitter">X</div>
-                                        <span>125K</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-section">
-                        <div class="stat-item">
-                            <div class="stat-value">4.9</div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">2.4k</div>
-                            <div class="stat-label">Reviews</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">97%</div>
-                            <div class="stat-label">Recommend</div>
-                        </div>
-                    </div>
-
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">Full-Stack Bootcamp • <span class="service-price">$497</span></div>
-                            <div class="service-tag">React Course • <span class="service-price">$197</span></div>
-                        </div>
-                    </div>
-
-                    <div class="review-snippet">
-                        <div class="review-stars">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                        </div>
-                        <div class="review-text">
-                            "Got hired at Google after completing Alex's bootcamp. Worth every penny!"
-                        </div>
-                        <div class="review-author">- Michael R., 1 week ago</div>
-                    </div>
-
-                    <div class="card-action">
-                        View Full Profile
-                        <span class="arrow-icon">→</span>
-                    </div>
-                </div>
-
-                <div class="influencer-card" onclick="showPage('profile')">
-                    <div class="trust-badge trust-medium">⚡ Mixed</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">SM</div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Sarah Mitchell</div>
-                                <div class="influencer-niche">Real Estate</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge">
-                                        <div class="platform-icon instagram">IG</div>
-                                        <span>450K</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-section">
-                        <div class="stat-item">
-                            <div class="stat-value">3.2</div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">432</div>
-                            <div class="stat-label">Reviews</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">58%</div>
-                            <div class="stat-label">Recommend</div>
-                        </div>
-                    </div>
-
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">Wholesaling Course • <span class="service-price">$997</span></div>
-                        </div>
-                    </div>
-
-                    <div class="review-snippet">
-                        <div class="review-stars">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star" style="color: #e5e7eb;">★</span>
-                            <span class="star" style="color: #e5e7eb;">★</span>
-                        </div>
-                        <div class="review-text">
-                            "Content is okay but overpriced. Most info is available free..."
-                        </div>
-                        <div class="review-author">- Tom D., 1 week ago</div>
-                    </div>
-
-                    <div class="card-action">
-                        View Full Profile
-                        <span class="arrow-icon">→</span>
-                    </div>
+            <div class="cards-grid" id="influencersGrid">
+                <!-- Will be populated dynamically from Firestore -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading influencers...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PROFILE PAGE -->
-    <div id="profile-page" class="page">
-        <!-- Navigation (Same as home) -->
-        <nav>
-            <div class="nav-container">
-                <a href="#" class="logo" onclick="showPage('home')">
-                    <div class="logo-icon">✓</div>
-                    <span>TrustReview</span>
-                </a>
-                <div class="nav-links">
-                    <a href="#" onclick="showPage('home')">← Back to Browse</a>
-                    <a href="#">Categories</a>
-                    <a href="#">Top Rated</a>
-                    <a href="#" class="btn-primary">Submit Review</a>
-                </div>
-            </div>
-        </nav>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signOut,
+            updateProfile
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getFirestore,
+            collection,
+            getDocs,
+            query,
+            where,
+            orderBy,
+            limit,
+            addDoc,
+            doc,
+            getDoc,
+            setDoc,
+            updateDoc,
+            serverTimestamp
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="profile-header-content">
-                <div class="profile-avatar">
-                    JD
-                    <div class="verified-badge">✓</div>
-                </div>
-                <div class="profile-details">
-                    <h1>Jake Davis</h1>
-                    <div class="profile-meta">
-                        <div class="profile-meta-item">
-                            <span>🏋️</span>
-                            <span>Fitness Coach</span>
-                        </div>
-                        <div class="profile-meta-item">
-                            <span>✓</span>
-                            <span>Verified Account</span>
-                        </div>
-                        <div class="profile-meta-item">
-                            <span>⭐</span>
-                            <span>4.8 Rating (1,247 reviews)</span>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            // ADD YOUR FIREBASE CONFIG HERE
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Global variables
+        let currentUser = null;
+        let isSignUp = false;
+        let influencersData = [];
+        let selectedCategory = 'all';
+
+        // Make functions global
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.toggleAuthMode = toggleAuthMode;
+        window.signInWithGoogle = signInWithGoogle;
+        window.signOutUser = signOutUser;
+        window.showPage = showPage;
+        window.searchInfluencers = searchInfluencers;
+        window.loadInfluencerProfile = loadInfluencerProfile;
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            updateAuthUI();
+            if (user) {
+                console.log('User signed in:', user.email);
+            } else {
+                console.log('User signed out');
+            }
+        });
+
+        // Update Auth UI
+        function updateAuthUI() {
+            const authContainer = document.getElementById('authContainer');
+            
+            if (currentUser) {
+                const userInitial = currentUser.displayName ? 
+                    currentUser.displayName.charAt(0).toUpperCase() : 
+                    currentUser.email.charAt(0).toUpperCase();
+                
+                authContainer.innerHTML = `
+                    <div class="user-dropdown">
+                        <button class="user-btn" onclick="toggleDropdown()">
+                            <div class="user-avatar">${userInitial}</div>
+                            <span>${currentUser.displayName || currentUser.email}</span>
+                        </button>
+                        <div id="dropdownMenu" class="dropdown-menu">
+                            <div class="dropdown-item">My Reviews</div>
+                            <div class="dropdown-item">Settings</div>
+                            <div class="dropdown-item" onclick="signOutUser()">Sign Out</div>
                         </div>
                     </div>
-                    <div class="profile-social-stats">
-                        <div class="social-stat">
-                            <div class="social-stat-icon instagram">IG</div>
-                            <div>
-                                <div style="font-weight: 700;">850K</div>
-                                <div style="font-size: 0.875rem; opacity: 0.9;">Followers</div>
+                `;
+            } else {
+                authContainer.innerHTML = `
+                    <button class="btn-primary" onclick="openAuthModal()">Submit Review</button>
+                `;
+            }
+        }
+
+        // Toggle dropdown
+        window.toggleDropdown = function() {
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('active');
+        }
+
+        // Auth Modal Functions
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('errorMessage').classList.remove('active');
+        }
+
+        function toggleAuthMode() {
+            isSignUp = !isSignUp;
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const nameInput = document.getElementById('nameInput');
+            const switchText = document.getElementById('authSwitchText');
+            const switchLink = document.getElementById('authSwitchLink');
+            
+            if (isSignUp) {
+                title.textContent = 'Sign Up';
+                subtitle.textContent = 'Create an account to write reviews';
+                submitBtn.textContent = 'Sign Up';
+                nameInput.style.display = 'block';
+                nameInput.required = true;
+                switchText.textContent = 'Already have an account?';
+                switchLink.textContent = 'Sign In';
+            } else {
+                title.textContent = 'Sign In';
+                subtitle.textContent = 'Access your account to write reviews';
+                submitBtn.textContent = 'Sign In';
+                nameInput.style.display = 'none';
+                nameInput.required = false;
+                switchText.textContent = "Don't have an account?";
+                switchLink.textContent = 'Sign Up';
+            }
+        }
+
+        // Handle Auth Form Submit
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const name = document.getElementById('nameInput').value;
+            const errorMsg = document.getElementById('errorMessage');
+            
+            try {
+                let userCredential;
+                
+                if (isSignUp) {
+                    // Sign Up
+                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    
+                    // Update profile with name
+                    if (name) {
+                        await updateProfile(userCredential.user, {
+                            displayName: name
+                        });
+                    }
+                    
+                    // Create user document in Firestore
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                        displayName: name,
+                        email: email,
+                        createdAt: serverTimestamp(),
+                        reviewsWritten: 0
+                    });
+                } else {
+                    // Sign In
+                    userCredential = await signInWithEmailAndPassword(auth, email, password);
+                }
+                
+                closeAuthModal();
+                document.getElementById('authForm').reset();
+                
+            } catch (error) {
+                errorMsg.textContent = error.message;
+                errorMsg.classList.add('active');
+            }
+        });
+
+        // Google Sign In
+        async function signInWithGoogle() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                // Check if user document exists, if not create it
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, 'users', user.uid), {
+                        displayName: user.displayName,
+                        email: user.email,
+                        createdAt: serverTimestamp(),
+                        reviewsWritten: 0
+                    });
+                }
+                
+                closeAuthModal();
+            } catch (error) {
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.textContent = error.message;
+                errorMsg.classList.add('active');
+            }
+        }
+
+        // Sign Out
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+                console.log('User signed out successfully');
+            } catch (error) {
+                console.error('Error signing out:', error);
+            }
+        }
+
+        // Load Influencers from Firestore
+        async function loadInfluencers() {
+            const grid = document.getElementById('influencersGrid');
+            
+            try {
+                // Get influencers from Firestore
+                const q = query(collection(db, 'influencers'), orderBy('stats.rating', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                influencersData = [];
+                querySnapshot.forEach((doc) => {
+                    influencersData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // If no data in Firestore, use sample data
+                if (influencersData.length === 0) {
+                    influencersData = getSampleInfluencers();
+                    // Optionally, seed Firestore with sample data
+                    await seedFirestore();
+                }
+                
+                displayInfluencers(influencersData);
+                
+            } catch (error) {
+                console.error('Error loading influencers:', error);
+                // Use sample data as fallback
+                influencersData = getSampleInfluencers();
+                displayInfluencers(influencersData);
+            }
+        }
+
+        // Display Influencers
+        function displayInfluencers(influencers) {
+            const grid = document.getElementById('influencersGrid');
+            
+            if (influencers.length === 0) {
+                grid.innerHTML = '<p>No influencers found.</p>';
+                return;
+            }
+            
+            grid.innerHTML = influencers.map(influencer => createInfluencerCard(influencer)).join('');
+        }
+
+        // Create Influencer Card HTML
+        function createInfluencerCard(influencer) {
+            const initials = influencer.name.split(' ').map(n => n[0]).join('');
+            const trustClass = influencer.trustScore > 80 ? 'trust-high' : 
+                              influencer.trustScore > 50 ? 'trust-medium' : 'trust-low';
+            const trustLabel = influencer.trustScore > 80 ? '✓ Trusted' :
+                              influencer.trustScore > 50 ? '⚡ Mixed' : '⚠️ Caution';
+            
+            return `
+                <div class="influencer-card" onclick="loadInfluencerProfile('${influencer.id}')">
+                    <div class="trust-badge ${trustClass}">${trustLabel}</div>
+                    <div class="card-header">
+                        <div class="card-profile">
+                            <div class="profile-image">
+                                ${initials}
+                                ${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
+                            </div>
+                            <div class="profile-info">
+                                <div class="influencer-name">${influencer.name}</div>
+                                <div class="influencer-niche">${influencer.niche}</div>
+                                <div class="social-platforms">
+                                    ${Object.entries(influencer.socialPlatforms || {}).map(([platform, followers]) => `
+                                        <div class="platform-badge">
+                                            <div class="platform-icon ${platform}">${getPlatformIcon(platform)}</div>
+                                            <span>${formatFollowers(followers)}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
-                        <div class="social-stat">
-                            <div class="social-stat-icon youtube">YT</div>
-                            <div>
-                                <div style="font-weight: 700;">320K</div>
-                                <div style="font-size: 0.875rem; opacity: 0.9;">Subscribers</div>
-                            </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <div class="stat-value">${influencer.stats?.rating || 0}</div>
+                            <div class="stat-label">Rating</div>
                         </div>
-                        <div class="social-stat">
-                            <div class="social-stat-icon tiktok">TT</div>
-                            <div>
-                                <div style="font-weight: 700;">1.2M</div>
-                                <div style="font-size: 0.875rem; opacity: 0.9;">Followers</div>
-                            </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${formatNumber(influencer.stats?.reviewCount || 0)}</div>
+                            <div class="stat-label">Reviews</div>
                         </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${influencer.stats?.recommendPercent || 0}%</div>
+                            <div class="stat-label">Recommend</div>
+                        </div>
+                    </div>
+
+                    <div class="services-preview">
+                        <div class="services-title">Popular Services</div>
+                        <div class="service-tags">
+                            ${(influencer.services || []).slice(0, 3).map(service => `
+                                <div class="service-tag">${service.title} • <span class="service-price">$${service.price}</span></div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    ${influencer.latestReview ? `
+                        <div class="review-snippet">
+                            <div class="review-stars">
+                                ${generateStars(influencer.latestReview.rating)}
+                            </div>
+                            <div class="review-text">
+                                "${influencer.latestReview.text}"
+                            </div>
+                            <div class="review-author">- ${influencer.latestReview.author}, ${influencer.latestReview.date}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="card-action">
+                        View Full Profile
+                        <span class="arrow-icon">→</span>
                     </div>
                 </div>
-            </div>
-        </div>
+            `;
+        }
 
-        <!-- Profile Content -->
-        <div class="container">
-            <!-- Profile Tabs -->
-            <div class="profile-tabs">
-                <button class="tab-btn active">Services & Courses</button>
-                <button class="tab-btn">Reviews (1,247)</button>
-                <button class="tab-btn">About</button>
-                <button class="tab-btn">Community</button>
-            </div>
+        // Helper Functions
+        function getPlatformIcon(platform) {
+            const icons = {
+                instagram: 'IG',
+                youtube: 'YT',
+                tiktok: 'TT',
+                twitter: 'X'
+            };
+            return icons[platform] || platform.substring(0, 2).toUpperCase();
+        }
 
-            <!-- Services Section -->
-            <div class="services-section">
-                <div class="service-card">
-                    <div class="service-header-detail">
-                        <div>
-                            <div class="service-title">30-Day Fitness Transformation Bootcamp</div>
-                            <div class="service-badges">
-                                <span class="badge badge-type">Bootcamp</span>
-                                <span class="badge badge-price">$297</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="service-description">
-                        A comprehensive 30-day program designed to transform your body and mindset. Includes daily workout videos, 
-                        personalized nutrition plans, weekly check-ins, and access to our exclusive community. Perfect for beginners 
-                        to intermediate fitness levels looking for real, sustainable results.
-                    </div>
-                    <div class="service-stats">
-                        <div class="service-stat">
-                            <div class="service-stat-value">⭐ 4.8</div>
-                            <div class="service-stat-label">Rating</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">823</div>
-                            <div class="service-stat-label">Reviews</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">94%</div>
-                            <div class="service-stat-label">Completion Rate</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">12,847</div>
-                            <div class="service-stat-label">Students</div>
-                        </div>
-                    </div>
-                </div>
+        function formatFollowers(count) {
+            if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+            if (count >= 1000) return (count / 1000).toFixed(0) + 'K';
+            return count.toString();
+        }
 
-                <div class="service-card">
-                    <div class="service-header-detail">
-                        <div>
-                            <div class="service-title">1-on-1 Personal Coaching</div>
-                            <div class="service-badges">
-                                <span class="badge badge-type">Coaching</span>
-                                <span class="badge badge-price">$150/month</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="service-description">
-                        Get personalized attention with weekly video calls, custom workout plans, nutrition guidance, and 24/7 chat support. 
-                        This is for serious individuals ready to make a lasting change with direct accountability and support.
-                    </div>
-                    <div class="service-stats">
-                        <div class="service-stat">
-                            <div class="service-stat-value">⭐ 4.9</div>
-                            <div class="service-stat-label">Rating</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">234</div>
-                            <div class="service-stat-label">Reviews</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">98%</div>
-                            <div class="service-stat-label">Satisfaction</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">Limited</div>
-                            <div class="service-stat-label">Availability</div>
-                        </div>
-                    </div>
-                </div>
+        function formatNumber(num) {
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num.toString();
+        }
 
-                <div class="service-card">
-                    <div class="service-header-detail">
-                        <div>
-                            <div class="service-title">Nutrition Mastery Guide</div>
-                            <div class="service-badges">
-                                <span class="badge badge-type">Digital Product</span>
-                                <span class="badge badge-price">$47</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="service-description">
-                        Complete nutrition guide with meal plans, recipes, and shopping lists. Learn how to fuel your body for optimal performance and results.
-                    </div>
-                    <div class="service-stats">
-                        <div class="service-stat">
-                            <div class="service-stat-value">⭐ 4.6</div>
-                            <div class="service-stat-label">Rating</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">190</div>
-                            <div class="service-stat-label">Reviews</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">PDF + Videos</div>
-                            <div class="service-stat-label">Format</div>
-                        </div>
-                        <div class="service-stat">
-                            <div class="service-stat-value">Instant</div>
-                            <div class="service-stat-label">Access</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<span class="star" ${i > rating ? 'style="color: #e5e7eb;"' : ''}>★</span>`;
+            }
+            return stars;
+        }
 
-            <!-- Reviews Section -->
-            <div class="reviews-section">
-                <div class="reviews-header">
-                    <div class="reviews-title">Customer Reviews</div>
-                    <div class="review-filters">
-                        <button class="filter-btn active">All Reviews</button>
-                        <button class="filter-btn">5 Stars</button>
-                        <button class="filter-btn">4 Stars</button>
-                        <button class="filter-btn">3 Stars</button>
-                        <button class="filter-btn">Critical</button>
-                    </div>
-                </div>
+        // Sample Data
+        function getSampleInfluencers() {
+            return [
+                {
+                    id: 'jake-davis-1',
+                    name: 'Jake Davis',
+                    niche: 'Fitness Coach',
+                    avatar: 'JD',
+                    verified: true,
+                    trustScore: 94,
+                    socialPlatforms: {
+                        instagram: 850000,
+                        youtube: 320000,
+                        tiktok: 1200000
+                    },
+                    stats: {
+                        rating: 4.8,
+                        reviewCount: 1247,
+                        recommendPercent: 94
+                    },
+                    services: [
+                        { title: '30-Day Bootcamp', price: 297 },
+                        { title: '1-on-1 Coaching', price: '150/mo' },
+                        { title: 'Nutrition Guide', price: 47 }
+                    ],
+                    latestReview: {
+                        rating: 5,
+                        text: 'Life-changing program! Lost 20 pounds and gained confidence. Jake\'s support is incredible...',
+                        author: 'Sarah M.',
+                        date: '2 days ago'
+                    }
+                },
+                {
+                    id: 'alex-kumar-1',
+                    name: 'Alex Kumar',
+                    niche: 'Web Developer',
+                    avatar: 'AK',
+                    verified: true,
+                    trustScore: 97,
+                    socialPlatforms: {
+                        youtube: 850000,
+                        twitter: 125000
+                    },
+                    stats: {
+                        rating: 4.9,
+                        reviewCount: 2400,
+                        recommendPercent: 97
+                    },
+                    services: [
+                        { title: 'Full-Stack Bootcamp', price: 497 },
+                        { title: 'React Course', price: 197 }
+                    ],
+                    latestReview: {
+                        rating: 5,
+                        text: 'Got hired at Google after completing Alex\'s bootcamp. Worth every penny!',
+                        author: 'Michael R.',
+                        date: '1 week ago'
+                    }
+                },
+                {
+                    id: 'sarah-mitchell-1',
+                    name: 'Sarah Mitchell',
+                    niche: 'Real Estate',
+                    avatar: 'SM',
+                    verified: false,
+                    trustScore: 58,
+                    socialPlatforms: {
+                        instagram: 450000
+                    },
+                    stats: {
+                        rating: 3.2,
+                        reviewCount: 432,
+                        recommendPercent: 58
+                    },
+                    services: [
+                        { title: 'Wholesaling Course', price: 997 }
+                    ],
+                    latestReview: {
+                        rating: 3,
+                        text: 'Content is okay but overpriced. Most info is available free...',
+                        author: 'Tom D.',
+                        date: '1 week ago'
+                    }
+                }
+            ];
+        }
 
-                <!-- Individual Reviews -->
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar">SM</div>
-                            <div class="reviewer-details">
-                                <div class="reviewer-name">Sarah Martinez</div>
-                                <div class="review-date">2 days ago • Verified Purchase</div>
-                            </div>
-                        </div>
-                        <div class="review-rating">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                        </div>
-                    </div>
-                    <div class="review-service-tag">30-Day Fitness Transformation Bootcamp</div>
-                    <div class="review-content">
-                        This bootcamp completely changed my life! I was skeptical at first, but Jake's approach is so practical and sustainable. 
-                        The daily workouts are challenging but doable, and the nutrition guide actually makes sense. I lost 20 pounds and gained 
-                        so much confidence. What sets this apart is Jake actually responds to questions in the community - he's not just selling 
-                        and disappearing. The app is great too, tracks everything perfectly. Worth every penny!
-                    </div>
-                    <div class="review-actions">
-                        <button class="review-action-btn">
-                            <span>👍</span>
-                            <span>Helpful (42)</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>💬</span>
-                            <span>Reply</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>🚩</span>
-                            <span>Report</span>
-                        </button>
-                    </div>
-                </div>
+        // Seed Firestore with sample data
+        async function seedFirestore() {
+            const sampleData = getSampleInfluencers();
+            
+            for (const influencer of sampleData) {
+                try {
+                    await setDoc(doc(db, 'influencers', influencer.id), {
+                        ...influencer,
+                        createdAt: serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error('Error seeding influencer:', error);
+                }
+            }
+            
+            console.log('Sample data seeded to Firestore');
+        }
 
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar">MK</div>
-                            <div class="reviewer-details">
-                                <div class="reviewer-name">Michael Kim</div>
-                                <div class="review-date">1 week ago • Verified Purchase</div>
-                            </div>
-                        </div>
-                        <div class="review-rating">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star" style="color: #e5e7eb;">★</span>
-                        </div>
-                    </div>
-                    <div class="review-service-tag">1-on-1 Personal Coaching</div>
-                    <div class="review-content">
-                        Good coaching overall but I wish there were more flexibility with the meal plans. Jake is knowledgeable and supportive, 
-                        always available to answer questions. The weekly calls are helpful and he really does customize everything to your needs. 
-                        My only complaint is the price - it's a bit steep compared to other coaches. But if you can afford it, the quality is there.
-                    </div>
-                    <div class="review-actions">
-                        <button class="review-action-btn">
-                            <span>👍</span>
-                            <span>Helpful (18)</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>💬</span>
-                            <span>Reply</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>🚩</span>
-                            <span>Report</span>
-                        </button>
-                    </div>
-                </div>
+        // Search Influencers
+        function searchInfluencers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = influencersData.filter(influencer => 
+                influencer.name.toLowerCase().includes(searchTerm) ||
+                influencer.niche.toLowerCase().includes(searchTerm) ||
+                (influencer.services && influencer.services.some(s => 
+                    s.title.toLowerCase().includes(searchTerm)
+                ))
+            );
+            
+            displayInfluencers(filtered);
+        }
 
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar">JL</div>
-                            <div class="reviewer-details">
-                                <div class="reviewer-name">Jessica Lee</div>
-                                <div class="review-date">2 weeks ago • Verified Purchase</div>
-                            </div>
-                        </div>
-                        <div class="review-rating">
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                            <span class="star">★</span>
-                        </div>
-                    </div>
-                    <div class="review-service-tag">30-Day Fitness Transformation Bootcamp</div>
-                    <div class="review-content">
-                        I've tried so many fitness programs and this is the ONLY one that stuck. The community support is amazing - everyone is so encouraging. 
-                        The workouts are varied enough that you don't get bored, and Jake provides modifications for different fitness levels. 
-                        I'm on my second round now and still seeing improvements. Highly recommend!
-                    </div>
-                    <div class="review-actions">
-                        <button class="review-action-btn">
-                            <span>👍</span>
-                            <span>Helpful (67)</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>💬</span>
-                            <span>Reply</span>
-                        </button>
-                        <button class="review-action-btn">
-                            <span>🚩</span>
-                            <span>Report</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        // Category Filter
+        document.getElementById('categoriesContainer').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-pill')) {
+                // Update active state
+                document.querySelectorAll('.category-pill').forEach(pill => {
+                    pill.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Filter influencers
+                selectedCategory = e.target.dataset.category;
+                
+                if (selectedCategory === 'all') {
+                    displayInfluencers(influencersData);
+                } else {
+                    const filtered = influencersData.filter(influencer => 
+                        influencer.niche.toLowerCase().includes(selectedCategory.replace('-', ' '))
+                    );
+                    displayInfluencers(filtered);
+                }
+            }
+        });
 
-        <!-- Floating Write Review Button -->
-        <button class="write-review-btn">
-            <span>✍️</span>
-            <span>Write a Review</span>
-        </button>
-    </div>
+        // Load Influencer Profile
+        async function loadInfluencerProfile(influencerId) {
+            // This would navigate to the profile page or load profile data
+            console.log('Loading profile for:', influencerId);
+            // For now, just show the profile page
+            showPage('profile');
+        }
 
-    <script>
-        // Page switching for demo
+        // Page Navigation
         function showPage(page) {
-            // Hide all pages
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             
-            // Show selected page
             if (page === 'home') {
                 document.getElementById('home-page').classList.add('active');
                 document.querySelectorAll('.demo-btn')[0].classList.remove('inactive');
                 document.querySelectorAll('.demo-btn')[1].classList.add('inactive');
             } else if (page === 'profile') {
-                document.getElementById('profile-page').classList.add('active');
-                document.querySelectorAll('.demo-btn')[0].classList.add('inactive');
-                document.querySelectorAll('.demo-btn')[1].classList.remove('inactive');
-                // Scroll to top when showing profile
+                // Would load actual profile data here
+                alert('Profile page would load here with data from Firestore');
                 window.scrollTo(0, 0);
             }
         }
 
-        // Category pill selection
-        document.querySelectorAll('.category-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-                this.classList.add('active');
-            });
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInfluencers();
         });
 
         // Navbar scroll effect
@@ -1627,20 +1494,14 @@
             }
         });
 
-        // Tab switching in profile
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // Review filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-dropdown')) {
+                const dropdown = document.getElementById('dropdownMenu');
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
+            }
         });
     </script>
 </body>
