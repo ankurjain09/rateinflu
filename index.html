@@ -1,205 +1,990 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RateInflu — Transparent Influencer Reviews</title>
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-      background-color: #f5f7fa;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #fff;
-      border-bottom: 1px solid #eee;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .auth-section button {
-      background-color: #4285F4;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .influencer-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      padding: 2rem;
-    }
-    .card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding: 1.5rem;
-      transition: transform 0.2s ease;
-    }
-    .card:hover { transform: translateY(-4px); }
-    .name { font-size: 1.25rem; font-weight: 600; margin-bottom: 4px; }
-    .niche { color: #777; font-size: 0.9rem; margin-bottom: 10px; }
-    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .tag {
-      background: #eef2f7;
-      color: #444;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-    }
-    .rating { color: #f59e0b; font-weight: bold; }
-    .review-form {
-      display: none;
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-    .review-form textarea {
-      width: 100%;
-      height: 80px;
-      margin-top: 8px;
-    }
-    .review-form button {
-      margin-top: 8px;
-      background: #10b981;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustReview - Verified Influencer Reviews</title>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpNe7eSR8GzlzNGgKMxAKsXngT-3BUa7k",
+            authDomain: "rateinflu.firebaseapp.com",
+            projectId: "rateinflu",
+            storageBucket: "rateinflu.firebasestorage.app",
+            messagingSenderId: "848511476167",
+            appId: "1:848511476167:web:1e3aa2e577c8ea15c3f98f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // Make functions globally accessible
+        window.firebaseAuth = auth;
+        window.firebaseDB = db;
+        window.googleProvider = provider;
+        window.firebaseSignInWithPopup = signInWithPopup;
+        window.firebaseSignOut = signOut;
+        window.firebaseOnAuthStateChanged = onAuthStateChanged;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseCollection = collection;
+        window.firebaseDoc = doc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseQuery = query;
+        window.firebaseWhere = where;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseLimit = limit;
+
+        // Initialize auth listener after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.initializeApp();
+        });
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light-gray: #f1f5f9;
+            --white: #ffffff;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Loading State */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            border: 3px solid var(--light-gray);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Auth Button */
+        .auth-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.5rem;
+            background: var(--white);
+            color: var(--dark);
+            border: 2px solid var(--light-gray);
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-button:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--white);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.625rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 3rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            color: var(--gray);
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Trust Badges */
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .trust-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--white);
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .trust-indicator-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .trust-indicator span {
+            font-size: 0.875rem;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        /* Search and Filters */
+        .search-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Category Pills */
+        .categories {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .category-pill {
+            padding: 0.5rem 1.25rem;
+            background: var(--light-gray);
+            border: 2px solid transparent;
+            border-radius: 50px;
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-pill:hover {
+            background: var(--white);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .category-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Influencer Card */
+        .influencer-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .influencer-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #fce7f3 100%);
+            position: relative;
+        }
+
+        .card-profile {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .profile-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .verified-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--success);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .influencer-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .influencer-niche {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .follower-count {
+            font-size: 0.875rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Trust Badge */
+        .trust-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .trust-high {
+            background: var(--success);
+            color: white;
+        }
+
+        .trust-medium {
+            background: var(--warning);
+            color: white;
+        }
+
+        .trust-low {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            background: var(--light-gray);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        /* Services Preview */
+        .services-preview {
+            padding: 1.5rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .services-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+
+        .service-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .service-tag {
+            padding: 0.375rem 0.75rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .service-price {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        /* Review Snippet */
+        .review-snippet {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #fef3c7 100%);
+        }
+
+        .review-stars {
+            display: flex;
+            gap: 0.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .star {
+            color: #fbbf24;
+            font-size: 1rem;
+        }
+
+        .review-text {
+            font-size: 0.875rem;
+            color: var(--dark);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-author {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        /* View Profile Button */
+        .card-action {
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .card-action:hover {
+            background: var(--primary-dark);
+        }
+
+        .arrow-icon {
+            transition: transform 0.3s;
+        }
+
+        .influencer-card:hover .arrow-icon {
+            transform: translateX(5px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h2>RateInflu</h2>
-    <div class="auth-section">
-      <span id="user-info"></span>
-      <button id="login-btn">Sign in with Google</button>
-      <button id="logout-btn" style="display:none; background:#ef4444;">Logout</button>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-icon">✓</div>
+                <span>TrustReview</span>
+            </div>
+            <div class="nav-links">
+                <a href="#">Browse</a>
+                <a href="#">Categories</a>
+                <a href="#">Top Rated</a>
+                <a href="#">How It Works</a>
+                <div id="authContainer">
+                    <button class="auth-button" id="signInBtn" onclick="handleSignIn()">
+                        Sign in with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Find Trusted Influencer Services</h1>
+            <p>Community-verified reviews for courses, bootcamps, and coaching programs</p>
+            
+            <div class="trust-indicators">
+                <div class="trust-indicator">
+                    <div class="trust-indicator-icon">✓</div>
+                    <span id="totalReviews">Loading...</span>
+                </div>
+                <div class="trust-indicator">
+                    <div class="trust-indicator-icon">⭐</div>
+                    <span id="avgRating">Loading...</span>
+                </div>
+                <div class="trust-indicator">
+                    <div class="trust-indicator-icon">🛡️</div>
+                    <span>Scam Protection</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search influencers, courses, or services...">
+                <button class="search-btn" onclick="performSearch()">Search</button>
+            </div>
+            
+            <div class="categories" id="categoryFilters">
+                <div class="category-pill active" data-category="all">All Categories</div>
+                <div class="category-pill" data-category="fitness">💪 Fitness</div>
+                <div class="category-pill" data-category="trading">💰 Trading</div>
+                <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
+                <div class="category-pill" data-category="beauty">💄 Beauty</div>
+                <div class="category-pill" data-category="tech">💻 Tech</div>
+                <div class="category-pill" data-category="education">📚 Education</div>
+                <div class="category-pill" data-category="marketing">🎯 Marketing</div>
+                <div class="category-pill" data-category="wellness">🧘 Wellness</div>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid" id="influencerGrid">
+            <div class="loading-container">
+                <div class="spinner"></div>
+            </div>
+        </div>
     </div>
-  </header>
 
-  <main>
-    <section id="influencer-list" class="influencer-grid">
-      <!-- Influencers will load here -->
-    </section>
-  </main>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let influencersData = [];
+        let activeCategory = 'all';
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        // Initialize app when DOM and Firebase are ready
+        window.initializeApp = function() {
+            // Auth state observer
+            window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+                currentUser = user;
+                updateAuthUI(user);
+                
+                // Load influencers when auth state is ready
+                if (!influencersData.length) {
+                    loadInfluencers();
+                }
+            });
+        };
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAjYOUXAU1FusccFJQcsEWmo8W9CgSSmfA",
-      authDomain: "rateinflu.firebaseapp.com",
-      projectId: "rateinflu",
-      storageBucket: "rateinflu.firebasestorage.app",
-      messagingSenderId: "619786232167",
-      appId: "1:619786232167:web:eca2e76803201421eccfc2",
-      measurementId: "G-WPDZMZHMCW"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const influencerList = document.getElementById("influencer-list");
-    const loginBtn = document.getElementById("login-btn");
-    const logoutBtn = document.getElementById("logout-btn");
-    const userInfo = document.getElementById("user-info");
-    let currentUser = null;
-
-    // === AUTH HANDLING ===
-    const provider = new GoogleAuthProvider();
-    loginBtn.addEventListener("click", () => signInWithPopup(auth, provider));
-    logoutBtn.addEventListener("click", () => signOut(auth));
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        userInfo.textContent = `Hi, ${user.displayName}`;
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
-      } else {
-        currentUser = null;
-        userInfo.textContent = "";
-        loginBtn.style.display = "inline-block";
-        logoutBtn.style.display = "none";
-      }
-    });
-
-    // === LOAD INFLUENCERS ===
-    async function loadInfluencers() {
-      const snapshot = await getDocs(collection(db, "influencers"));
-      snapshot.forEach(async (docSnap) => {
-        const data = docSnap.data();
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div class="name">${data.name} ${data.verified ? "✔️" : ""}</div>
-          <div class="niche">${data.niche}</div>
-          <div><span class="rating">⭐ ${data.stats?.rating ?? "N/A"}</span> (${data.stats?.reviewCount ?? 0} reviews)</div>
-          <div class="tags">${(data.tags || []).map(t => `<span class="tag">${t}</span>`).join("")}</div>
-          <button class="review-btn" data-id="${docSnap.id}" style="margin-top:10px;">Write a Review</button>
-          <div id="form-${docSnap.id}" class="review-form">
-            <h4>Write a review for ${data.name}</h4>
-            <input type="text" id="title-${docSnap.id}" placeholder="Title" />
-            <textarea id="text-${docSnap.id}" placeholder="Share your experience..."></textarea>
-            <input type="number" id="rating-${docSnap.id}" placeholder="Rating (1-5)" min="1" max="5" />
-            <button class="submit-btn" data-id="${docSnap.id}">Submit</button>
-          </div>
-        `;
-        influencerList.appendChild(card);
-      });
-
-      document.addEventListener("click", async (e) => {
-        if (e.target.classList.contains("review-btn")) {
-          const id = e.target.dataset.id;
-          const form = document.getElementById(`form-${id}`);
-          form.style.display = form.style.display === "block" ? "none" : "block";
-        }
-
-        if (e.target.classList.contains("submit-btn")) {
-          if (!currentUser) {
-            alert("Please sign in first!");
-            return;
-          }
-          const id = e.target.dataset.id;
-          const title = document.getElementById(`title-${id}`).value;
-          const text = document.getElementById(`text-${id}`).value;
-          const rating = Number(document.getElementById(`rating-${id}`).value);
-          if (!title || !text || !rating) return alert("Fill all fields.");
-
-          await setDoc(
-            doc(db, `influencers/${id}/reviews`, `${currentUser.uid}_${Date.now()}`),
-            {
-              userId: currentUser.uid,
-              userName: currentUser.displayName,
-              userAvatar: currentUser.photoURL,
-              title,
-              text,
-              rating,
-              timestamp: new Date().toISOString(),
+        // Handle Google Sign In
+        async function handleSignIn() {
+            try {
+                const result = await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
+                currentUser = result.user;
+                console.log('User signed in:', currentUser.displayName);
+            } catch (error) {
+                console.error('Error signing in:', error);
+                alert('Failed to sign in. Please try again.');
             }
-          );
-          alert("✅ Review posted!");
-          document.getElementById(`form-${id}`).style.display = "none";
         }
-      });
-    }
 
-    loadInfluencers();
-  </script>
+        // Handle Sign Out
+        async function handleSignOut() {
+            try {
+                await window.firebaseSignOut(window.firebaseAuth);
+                currentUser = null;
+                console.log('User signed out');
+            } catch (error) {
+                console.error('Error signing out:', error);
+            }
+        }
+
+        // Update Auth UI
+        function updateAuthUI(user) {
+            const authContainer = document.getElementById('authContainer');
+            
+            if (user) {
+                authContainer.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            ${user.photoURL ? `<img src="${user.photoURL}" alt="${user.displayName}">` : user.displayName?.charAt(0) || 'U'}
+                        </div>
+                        <button class="auth-button" onclick="handleSignOut()">Sign Out</button>
+                    </div>
+                `;
+            } else {
+                authContainer.innerHTML = `
+                    <button class="auth-button" id="signInBtn" onclick="handleSignIn()">
+                        Sign in with Google
+                    </button>
+                `;
+            }
+        }
+
+        // Load influencers from Firestore
+        async function loadInfluencers() {
+            try {
+                const influencersRef = window.firebaseCollection(window.firebaseDB, 'influencers');
+                const snapshot = await window.firebaseGetDocs(influencersRef);
+                
+                influencersData = [];
+                let totalReviews = 0;
+                let totalRating = 0;
+                let ratingCount = 0;
+
+                for (const doc of snapshot.docs) {
+                    const data = doc.data();
+                    influencersData.push({
+                        id: doc.id,
+                        ...data
+                    });
+
+                    // Calculate totals for indicators
+                    if (data.stats) {
+                        totalReviews += data.stats.reviewCount || 0;
+                        if (data.stats.rating) {
+                            totalRating += data.stats.rating;
+                            ratingCount++;
+                        }
+                    }
+                }
+
+                // Update trust indicators
+                document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
+                document.getElementById('avgRating').textContent = ratingCount > 0 
+                    ? `${(totalRating / ratingCount).toFixed(1)} Average Rating` 
+                    : '4.5 Average Rating';
+
+                displayInfluencers(influencersData);
+            } catch (error) {
+                console.error('Error loading influencers:', error);
+                displayError();
+            }
+        }
+
+        // Display influencers in the grid
+        function displayInfluencers(influencers) {
+            const grid = document.getElementById('influencerGrid');
+            
+            if (influencers.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No influencers found</h3>
+                        <p>Try adjusting your search or filters</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = influencers.map(influencer => createInfluencerCard(influencer)).join('');
+        }
+
+        // Create influencer card HTML
+        function createInfluencerCard(influencer) {
+            const trustScore = influencer.trustScore || 50;
+            const trustClass = trustScore >= 80 ? 'trust-high' : trustScore >= 60 ? 'trust-medium' : 'trust-low';
+            const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixed' : '⚠️ Caution';
+            
+            const stats = influencer.stats || {};
+            const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+            
+            return `
+                <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+                    <div class="trust-badge ${trustClass}">${trustLabel}</div>
+                    <div class="card-header">
+                        <div class="card-profile">
+                            <div class="profile-image">
+                                ${influencer.avatar || influencer.name?.substring(0, 2).toUpperCase() || 'IN'}
+                                ${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
+                            </div>
+                            <div class="profile-info">
+                                <div class="influencer-name">${influencer.name || 'Unknown'}</div>
+                                <div class="influencer-niche">${influencer.niche || 'General'}</div>
+                                <div class="follower-count">👥 ${followers} followers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.rating?.toFixed(1) || 'N/A'}</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${formatNumber(stats.reviewCount || 0)}</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.recommendPercent || 0}%</div>
+                            <div class="stat-label">Recommend</div>
+                        </div>
+                    </div>
+
+                    <div class="services-preview">
+                        <div class="services-title">Popular Services</div>
+                        <div class="service-tags">
+                            ${(influencer.services || []).slice(0, 3).map(service => `
+                                <div class="service-tag">${service.title} • <span class="service-price">$${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}</span></div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="card-action">
+                        View Full Profile
+                        <span class="arrow-icon">→</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper function to get total followers
+        function getTotalFollowers(socialPlatforms) {
+            if (!socialPlatforms) return 0;
+            return Object.values(socialPlatforms).reduce((sum, count) => sum + (count || 0), 0);
+        }
+
+        // Helper function to format followers
+        function formatFollowers(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+            return num.toString();
+        }
+
+        // Helper function to format numbers
+        function formatNumber(num) {
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num.toString();
+        }
+
+        // View influencer profile
+        function viewInfluencerProfile(influencerId) {
+            // For now, just log - you can implement full profile modal later
+            console.log('Viewing profile:', influencerId);
+            alert('Full profile view coming soon! Influencer ID: ' + influencerId);
+        }
+
+        // Search functionality
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = influencersData.filter(influencer => {
+                const matchesSearch = !searchTerm || 
+                    influencer.name?.toLowerCase().includes(searchTerm) ||
+                    influencer.niche?.toLowerCase().includes(searchTerm) ||
+                    influencer.tags?.some(tag => tag.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = activeCategory === 'all' || 
+                    influencer.niche?.toLowerCase().includes(activeCategory);
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            displayInfluencers(filtered);
+        }
+
+        // Category filter setup
+        document.querySelectorAll('.category-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                
+                activeCategory = this.dataset.category;
+                performSearch();
+            });
+        });
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        // Display error state
+        function displayError() {
+            const grid = document.getElementById('influencerGrid');
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <h3>Unable to load influencers</h3>
+                    <p>Please check your connection and try again</p>
+                    <button class="btn-primary" onclick="loadInfluencers()">Retry</button>
+                </div>
+            `;
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>
