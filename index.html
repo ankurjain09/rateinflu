@@ -631,6 +631,188 @@
             color: var(--dark);
         }
 
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: block;
+        }
+
+        /* Profile Modal */
+        .profile-modal {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-profile {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .modal-profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .modal-profile-info h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-profile-info p {
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-section {
+            margin-bottom: 2rem;
+        }
+
+        .modal-section h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .bio-text {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .social-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .social-stat {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .social-platform {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .social-count {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .services-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .service-card-detailed {
+            border: 2px solid var(--light-gray);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .service-card-detailed:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.1);
+        }
+
+        .service-title-detailed {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .service-description {
+            color: var(--gray);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .service-price-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -643,6 +825,11 @@
 
             .nav-links {
                 display: none;
+            }
+
+            .modal-profile {
+                flex-direction: column;
+                text-align: center;
             }
         }
     </style>
@@ -716,6 +903,42 @@
         <div class="cards-grid" id="influencerGrid">
             <div class="loading-container">
                 <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="profile-modal">
+            <div class="modal-header">
+                <button class="close-modal" onclick="closeProfile()">×</button>
+                <div class="modal-profile">
+                    <div class="modal-profile-image" id="modalAvatar">JD</div>
+                    <div class="modal-profile-info">
+                        <h2 id="modalName">Loading...</h2>
+                        <p id="modalInfo">Loading...</p>
+                        <p id="modalBio">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h3>Social Media Presence</h3>
+                    <div class="social-stats" id="socialStats"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Services & Courses</h3>
+                    <div class="services-grid" id="servicesContent"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Recent Reviews</h3>
+                    <div id="reviewsContent">
+                        <p style="color: var(--gray);">Loading reviews...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -847,59 +1070,7 @@
         function createInfluencerCard(influencer) {
             const trustScore = influencer.trustScore || 50;
             const trustClass = trustScore >= 80 ? 'trust-high' : trustScore >= 60 ? 'trust-medium' : 'trust-low';
-            const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixed' : '⚠️ Caution';
-            
-            const stats = influencer.stats || {};
-            const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
-            
-            return `
-                <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
-                    <div class="trust-badge ${trustClass}">${trustLabel}</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">
-                                ${influencer.avatar || influencer.name?.substring(0, 2).toUpperCase() || 'IN'}
-                                ${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
-                            </div>
-                            <div class="profile-info">
-                                <div class="influencer-name">${influencer.name || 'Unknown'}</div>
-                                <div class="influencer-niche">${influencer.niche || 'General'}</div>
-                                <div class="follower-count">👥 ${followers} followers</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stats-section">
-                        <div class="stat-item">
-                            <div class="stat-value">${stats.rating?.toFixed(1) || 'N/A'}</div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${formatNumber(stats.reviewCount || 0)}</div>
-                            <div class="stat-label">Reviews</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${stats.recommendPercent || 0}%</div>
-                            <div class="stat-label">Recommend</div>
-                        </div>
-                    </div>
-
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            ${(influencer.services || []).slice(0, 3).map(service => `
-                                <div class="service-tag">${service.title} • <span class="service-price">$${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}</span></div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="card-action">
-                        View Full Profile
-                        <span class="arrow-icon">→</span>
-                    </div>
-                </div>
-            `;
-        }
+            const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixe
 
         // Helper function to get total followers
         function getTotalFollowers(socialPlatforms) {
@@ -921,11 +1092,93 @@
         }
 
         // View influencer profile
-        function viewInfluencerProfile(influencerId) {
-            // For now, just log - you can implement full profile modal later
-            console.log('Viewing profile:', influencerId);
-            alert('Full profile view coming soon! Influencer ID: ' + influencerId);
+        async function viewInfluencerProfile(influencerId) {
+            const influencer = influencersData.find(inf => inf.id === influencerId);
+            
+            if (!influencer) {
+                console.error('Influencer not found:', influencerId);
+                return;
+            }
+
+            // Update modal header
+            document.getElementById('modalAvatar').textContent = influencer.avatar || influencer.name?.substring(0, 2).toUpperCase() || 'IN';
+            document.getElementById('modalName').textContent = influencer.name || 'Unknown Influencer';
+            
+            const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+            const verifiedBadge = influencer.verified ? ' • Verified ✓' : '';
+            document.getElementById('modalInfo').textContent = `${influencer.niche || 'General'} • ${followers} followers${verifiedBadge}`;
+            document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
+
+            // Update social stats
+            const socialStatsHTML = influencer.socialPlatforms ? 
+                Object.entries(influencer.socialPlatforms).map(([platform, count]) => `
+                    <div class="social-stat">
+                        <span class="social-platform">${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                        <span class="social-count">${formatFollowers(count)}</span>
+                    </div>
+                `).join('') : '<p style="color: var(--gray);">No social media data available</p>';
+            
+            document.getElementById('socialStats').innerHTML = socialStatsHTML;
+
+            // Load services for this influencer
+            try {
+                const servicesHTML = (influencer.services || []).map(service => `
+                    <div class="service-card-detailed">
+                        <div class="service-title-detailed">${service.title}</div>
+                        <div class="service-description">
+                            ${service.description || 'No description available'}
+                        </div>
+                        <div class="service-price-badge">
+                            ${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('servicesContent').innerHTML = servicesHTML || '<p style="color: var(--gray);">No services available</p>';
+
+                // Load reviews from subcollection
+                const influencerDocRef = window.firebaseDoc(window.firebaseDB, 'influencers', influencerId);
+                const reviewsRef = window.firebaseCollection(influencerDocRef, 'reviews');
+                const reviewsSnapshot = await window.firebaseGetDocs(reviewsRef);
+                
+                const reviewsHTML = reviewsSnapshot.docs.map(doc => {
+                    const review = doc.data();
+                    const stars = '★'.repeat(Math.round(review.rating || 0)) + '☆'.repeat(5 - Math.round(review.rating || 0));
+                    return `
+                        <div style="background: var(--light-gray); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                            <div style="color: #fbbf24; margin-bottom: 0.5rem;">${stars}</div>
+                            <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;">${review.title || 'Review'}</div>
+                            <div style="color: var(--gray); line-height: 1.6; margin-bottom: 0.5rem;">${review.text || 'No review text'}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray);">- ${review.userName || 'Anonymous'}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('reviewsContent').innerHTML = reviewsHTML || '<p style="color: var(--gray);">No reviews yet</p>';
+
+            } catch (error) {
+                console.error('Error loading profile details:', error);
+                document.getElementById('servicesContent').innerHTML = '<p style="color: var(--gray);">Error loading services</p>';
+                document.getElementById('reviewsContent').innerHTML = '<p style="color: var(--gray);">Error loading reviews</p>';
+            }
+
+            // Show modal
+            document.getElementById('profileModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
+
+        // Close profile modal
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfile();
+            }
+        });
 
         // Search functionality
         function performSearch() {
