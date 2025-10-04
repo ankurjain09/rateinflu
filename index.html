@@ -1,632 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrustReview - Verified Influencer Reviews</title>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #4f46e5; --primary-light: #818cf8; --primary-dark: #3730a3;
-            --accent: #06b6d4; --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
-            --dark: #1e293b; --gray: #64748b; --light-gray: #f1f5f9; --white: #ffffff;
-            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            --tiktok: #000000; --youtube: #FF0000; --instagram: #E4405F; --twitter: #1DA1F2;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
-            min-height: 100vh; color: var(--dark);
-        }
-        .loading-spinner { border: 3px solid var(--light-gray); border-top: 3px solid var(--primary);
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-container { text-align: center; padding: 4rem 2rem; }
-
-        /* Auth Modal */
-        .auth-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-        .auth-modal.active { display: flex; align-items: center; justify-content: center; }
-        .auth-content { background: white; padding: 2rem; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: var(--shadow-lg); }
-        .auth-header { text-align: center; margin-bottom: 2rem; }
-        .auth-header h2 { color: var(--primary); margin-bottom: 0.5rem; }
-        .auth-form { display: flex; flex-direction: column; gap: 1rem; }
-        .auth-input { padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 10px; font-size: 1rem; transition: all 0.3s; }
-        .auth-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .auth-btn { padding: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .auth-btn:hover { background: var(--primary-dark); }
-        .auth-divider { text-align: center; margin: 1rem 0; color: var(--gray); }
-        .google-btn { background: white; color: var(--dark); border: 2px solid var(--light-gray); }
-        .google-btn:hover { background: var(--light-gray); }
-        .auth-switch { text-align: center; margin-top: 1rem; color: var(--gray); }
-        .auth-switch a { color: var(--primary); cursor: pointer; text-decoration: none; }
-        .close-modal { position: absolute; right: 1rem; top: 1rem; background: var(--light-gray); border: none; width: 32px; height: 32px;
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gray); }
-        .error-message { background: #fef2f2; color: var(--danger); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
-        .error-message.active { display: block; }
-
-        /* User Dropdown */
-        .user-dropdown { position: relative; }
-        .user-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: white; border: 2px solid var(--light-gray);
-            border-radius: 10px; cursor: pointer; transition: all 0.3s; }
-        .user-btn:hover { border-color: var(--primary); }
-        .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-        .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: white; border-radius: 10px; box-shadow: var(--shadow-lg);
-            padding: 0.5rem; min-width: 200px; display: none; }
-        .dropdown-menu.active { display: block; }
-        .dropdown-item { padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
-        .dropdown-item:hover { background: var(--light-gray); }
-
-        /* Pages */
-        .page { display: none; } .page.active { display: block; }
-
-        /* Navigation */
-        nav { background: var(--white); padding: 1rem 2rem; position: fixed; width: 100%; top: 0; z-index: 1000;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s ease; }
-        nav.scrolled { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; }
-        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
-        .nav-links { display: flex; gap: 2rem; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--gray); font-weight: 500; transition: color 0.3s; position: relative; }
-        .nav-links a:hover { color: var(--primary); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.625rem 1.5rem; border-radius: 10px;
-            text-decoration: none; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 14px rgba(79,70,229,0.3); cursor: pointer; border: none; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.4); }
-
-        /* Main */
-        .container { max-width: 1400px; margin: 0 auto; padding: 6rem 2rem 2rem; }
-
-        /* Hero */
-        .hero { text-align: center; margin-bottom: 3rem; padding: 3rem 0; }
-        .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; }
-        .hero p { color: var(--gray); font-size: 1.25rem; max-width: 600px; margin: 0 auto; }
-
-        /* Trust Indicators */
-        .trust-indicators { display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap; }
-        .trust-indicator { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--white); border-radius: 50px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .trust-indicator-icon { width: 24px; height: 24px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; }
-        .trust-indicator span { font-size: 0.875rem; color: var(--dark); font-weight: 600; }
-
-        /* Search & Filters */
-        .search-section { background: var(--white); border-radius: 20px; padding: 2rem; margin-bottom: 3rem; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-        .search-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-        .search-input { flex: 1; padding: 1rem 1.5rem; border: 2px solid var(--light-gray); border-radius: 12px; font-size: 1rem; transition: all 0.3s; }
-        .search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
-        .search-btn { padding: 1rem 2rem; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .search-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
-
-        /* Categories */
-        .categories { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-        .category-pill { padding: 0.5rem 1.25rem; background: var(--light-gray); border: 2px solid transparent; border-radius: 50px; color: var(--gray);
-            font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .category-pill:hover { background: var(--white); border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-        .category-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        /* Cards */
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; margin-bottom: 4rem; }
-        .influencer-card { background: var(--white); border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease; cursor: pointer; position: relative; }
-        .influencer-card:hover { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
-        .card-header { padding: 1.5rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #fce7f3 100%); position: relative; }
-        .card-profile { display: flex; gap: 1rem; align-items: flex-start; }
-        .profile-image { width: 70px; height: 70px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--accent));
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; position: relative; box-shadow: 0 8px 16px rgba(79,70,229,0.3); }
-        .verified-badge { position: absolute; top: -5px; right: -5px; background: var(--success); color: white; width: 24px; height: 24px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border: 3px solid white; box-shadow: 0 2px 8px rgba(16,185,129,0.4); }
-        .profile-info { flex: 1; }
-        .influencer-name { font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 0.25rem; }
-        .influencer-niche { display: inline-block; background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .social-platforms { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-        .platform-badge { display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; background: var(--light-gray); border-radius: 6px; font-size: 0.75rem;
-            color: var(--dark); font-weight: 600; }
-        .platform-icon { width: 16px; height: 16px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: white; }
-        .platform-icon.tiktok { background: var(--tiktok); } .platform-icon.youtube { background: var(--youtube); }
-        .platform-icon.instagram { background: linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); }
-        .platform-icon.twitter { background: var(--twitter); }
-        .trust-badge { position: absolute; top: 1rem; right: 1rem; padding: 0.375rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; }
-        .trust-high { background: var(--success); color: white; } .trust-medium { background: var(--warning); color: white; } .trust-low { background: var(--danger); color: white; }
-        .stats-section { padding: 1.5rem; display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; background: var(--light-gray); }
-        .stat-item { text-align: center; } .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); } .stat-label { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.25rem; }
-        .services-preview { padding: 1.5rem; border-top: 1px solid var(--light-gray); }
-        .services-title { font-size: 0.875rem; font-weight: 600; color: var(--gray); margin-bottom: 1rem; }
-        .service-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .service-tag { padding: 0.375rem 0.75rem; background: var(--light-gray); border-radius: 8px; font-size: 0.75rem; color: var(--dark); font-weight: 500; }
-        .service-price { color: var(--success); font-weight: 700; }
-        .review-snippet { padding: 1.5rem; background: linear-gradient(135deg,#f0f9ff 0%,#fef3c7 100%); }
-        .review-stars { display: flex; gap: 0.125rem; margin-bottom: 0.5rem; } .star { color: #fbbf24; font-size: 1rem; }
-        .review-text { font-size: 0.875rem; color: var(--dark); line-height: 1.5; margin-bottom: 0.5rem; }
-        .review-author { font-size: 0.75rem; color: var(--gray); }
-        .card-action { padding: 1rem 1.5rem; background: var(--primary); color: white; text-align: center; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .card-action:hover { background: var(--primary-dark); } .arrow-icon { transition: transform 0.3s; }
-        .influencer-card:hover .arrow-icon { transform: translateX(5px); }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .cards-grid { grid-template-columns: 1fr; }
-            .nav-links { display: none; }
-        }
-
-        /* Profile Modal (Tabbed, matches sample) */
-        #profileModal { display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.5); align-items:center; justify-content:center; }
-        .profile-modal-content { background:#fff; width: 900px; max-width: 92vw; border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; }
-        .profile-modal-header { background: linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; padding: 1.5rem 2rem; display:flex; gap:1rem; align-items:center; position:relative; }
-        .profile-modal-header .close { position:absolute; right:12px; top:12px; background: rgba(255,255,255,0.2); border:none; width:36px; height:36px; border-radius:50%; color:#fff; font-size:1.25rem; cursor:pointer; }
-        .profile-modal-initials { width: 80px; height: 80px; border-radius: 16px; background: rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size: 1.75rem; font-weight: 800; }
-        .profile-modal-meta { display:flex; flex-direction:column; gap:.25rem; }
-        .profile-modal-name { font-size: 1.6rem; font-weight: 800; }
-        .profile-modal-niche { font-weight:600; opacity:.95; }
-        .profile-modal-social { margin-top:.25rem; display:flex; gap:.5rem; flex-wrap:wrap; }
-        .profile-modal-social .badge { background: rgba(255,255,255,0.2); padding:.2rem .5rem; border-radius: 999px; font-weight:700; font-size:.85rem; }
-
-        .profile-tabs { background:#fff; display:flex; gap:2rem; padding: .9rem 1.25rem; border-bottom: 2px solid var(--light-gray); }
-        .profile-tab-btn { background:none; border:none; font-weight:800; font-size:1rem; padding-bottom:.5rem; cursor:pointer; color: var(--gray); }
-        .profile-tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
-        .profile-tab { padding: 1.25rem 1.5rem 1.75rem; background:#fff; }
-        .service-row, .review-row { border-bottom:1px solid var(--light-gray); padding:.75rem 0; }
-        .review-form { display:flex; gap:.5rem; margin-top: .75rem; }
-        .review-form input { flex:1; padding:.75rem 1rem; border:2px solid var(--light-gray); border-radius: 10px; }
-        .review-form button { padding:.75rem 1rem; background: var(--primary); color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RateInflu — Transparent Influencer Reviews</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f5f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .auth-section button {
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .influencer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      transition: transform 0.2s ease;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .name { font-size: 1.25rem; font-weight: 600; margin-bottom: 4px; }
+    .niche { color: #777; font-size: 0.9rem; margin-bottom: 10px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .tag {
+      background: #eef2f7;
+      color: #444;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    .rating { color: #f59e0b; font-weight: bold; }
+    .review-form {
+      display: none;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+    .review-form textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 8px;
+    }
+    .review-form button {
+      margin-top: 8px;
+      background: #10b981;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <!-- Auth Modal -->
-    <div id="authModal" class="auth-modal">
-        <div class="auth-content">
-            <button class="close-modal" onclick="closeAuthModal()">×</button>
-            <div class="auth-header">
-                <h2 id="authTitle">Sign In</h2>
-                <p id="authSubtitle">Access your account to write reviews</p>
-            </div>
-            <div id="errorMessage" class="error-message"></div>
-            <form id="authForm" class="auth-form">
-                <input type="email" id="emailInput" class="auth-input" placeholder="Email" required>
-                <input type="password" id="passwordInput" class="auth-input" placeholder="Password" required>
-                <input type="text" id="nameInput" class="auth-input" placeholder="Full Name" style="display: none;">
-                <button type="submit" class="auth-btn" id="authSubmitBtn">Sign In</button>
-            </form>
-            <div class="auth-divider">OR</div>
-            <button onclick="signInWithGoogle()" class="auth-btn google-btn">Continue with Google</button>
-            <div class="auth-switch">
-                <span id="authSwitchText">Don't have an account?</span>
-                <a id="authSwitchLink" onclick="toggleAuthMode()">Sign Up</a>
-            </div>
-        </div>
+  <header>
+    <h2>RateInflu</h2>
+    <div class="auth-section">
+      <span id="user-info"></span>
+      <button id="login-btn">Sign in with Google</button>
+      <button id="logout-btn" style="display:none; background:#ef4444;">Logout</button>
     </div>
+  </header>
 
-    <!-- Navigation -->
-    <nav id="navbar">
-        <div class="nav-container">
-            <a href="#" class="logo" onclick="showPage('home')">
-                <div class="logo-icon">✓</div>
-                <span>TrustReview</span>
-            </a>
-            <div class="nav-links">
-                <a href="#">Browse</a>
-                <a href="#">Categories</a>
-                <a href="#">Top Rated</a>
-                <a href="#">How It Works</a>
-                <div id="authContainer"></div>
-            </div>
-        </div>
-    </nav>
+  <main>
+    <section id="influencer-list" class="influencer-grid">
+      <!-- Influencers will load here -->
+    </section>
+  </main>
 
-    <!-- HOME PAGE -->
-    <div id="home-page" class="page active">
-        <div class="container">
-            <div class="hero">
-                <h1>Find Trusted Influencer Services</h1>
-                <p>Community-verified reviews for courses, bootcamps, and coaching programs</p>
-                <div class="trust-indicators">
-                    <div class="trust-indicator"><div class="trust-indicator-icon">✓</div><span id="totalReviews">12,847 Verified Reviews</span></div>
-                    <div class="trust-indicator"><div class="trust-indicator-icon">🛡️</div><span>Scam Protection</span></div>
-                    <div class="trust-indicator"><div class="trust-indicator-icon">👥</div><span>Real User Feedback</span></div>
-                </div>
-            </div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-            <!-- Search & Filters -->
-            <div class="search-section">
-                <div class="search-bar">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Search influencers, courses, or services...">
-                    <button class="search-btn" onclick="searchInfluencers()">Search</button>
-                </div>
-                <div class="categories" id="categoriesContainer">
-                    <div class="category-pill active" data-category="all">All Categories</div>
-                    <div class="category-pill" data-category="fitness">💪 Fitness</div>
-                    <div class="category-pill" data-category="trading">💰 Trading</div>
-                    <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
-                    <div class="category-pill" data-category="beauty">💄 Beauty</div>
-                    <div class="category-pill" data-category="tech">💻 Tech</div>
-                    <div class="category-pill" data-category="education">📚 Education</div>
-                    <div class="category-pill" data-category="marketing">🎯 Marketing</div>
-                    <div class="category-pill" data-category="wellness">🧘 Wellness</div>
-                </div>
-            </div>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjYOUXAU1FusccFJQcsEWmo8W9CgSSmfA",
+      authDomain: "rateinflu.firebaseapp.com",
+      projectId: "rateinflu",
+      storageBucket: "rateinflu.firebasestorage.app",
+      messagingSenderId: "619786232167",
+      appId: "1:619786232167:web:eca2e76803201421eccfc2",
+      measurementId: "G-WPDZMZHMCW"
+    };
 
-            <!-- Static Example Cards (unchanged UI) -->
-            <div class="cards-grid" id="influencersGrid">
-                <div class="influencer-card" onclick="loadInfluencerProfile('influencer_1')">
-                    <div class="trust-badge trust-high">✓ Trusted</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">JD<div class="verified-badge">✓</div></div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Jake Davis</div>
-                                <div class="influencer-niche">Fitness Coach</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge"><div class="platform-icon instagram">IG</div><span>850K</span></div>
-                                    <div class="platform-badge"><div class="platform-icon youtube">YT</div><span>320K</span></div>
-                                    <div class="platform-badge"><div class="platform-icon tiktok">TT</div><span>1.2M</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stats-section">
-                        <div class="stat-item"><div class="stat-value">4.8</div><div class="stat-label">Rating</div></div>
-                        <div class="stat-item"><div class="stat-value">1.2k</div><div class="stat-label">Reviews</div></div>
-                        <div class="stat-item"><div class="stat-value">94%</div><div class="stat-label">Recommend</div></div>
-                    </div>
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">30-Day Bootcamp • <span class="service-price">$297</span></div>
-                            <div class="service-tag">1-on-1 Coaching • <span class="service-price">$150/mo</span></div>
-                            <div class="service-tag">Nutrition Guide • <span class="service-price">$47</span></div>
-                        </div>
-                    </div>
-                    <div class="card-action">View Full Profile <span class="arrow-icon">→</span></div>
-                </div>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-                <div class="influencer-card" onclick="loadInfluencerProfile('influencer_2')">
-                    <div class="trust-badge trust-high">✓ Trusted</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">AK<div class="verified-badge">✓</div></div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Alex Kumar</div>
-                                <div class="influencer-niche">Web Developer</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge"><div class="platform-icon youtube">YT</div><span>850K</span></div>
-                                    <div class="platform-badge"><div class="platform-icon twitter">X</div><span>125K</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stats-section">
-                        <div class="stat-item"><div class="stat-value">4.9</div><div class="stat-label">Rating</div></div>
-                        <div class="stat-item"><div class="stat-value">2.4k</div><div class="stat-label">Reviews</div></div>
-                        <div class="stat-item"><div class="stat-value">97%</div><div class="stat-label">Recommend</div></div>
-                    </div>
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">Full-Stack Bootcamp • <span class="service-price">$497</span></div>
-                            <div class="service-tag">React Course • <span class="service-price">$197</span></div>
-                        </div>
-                    </div>
-                    <div class="card-action">View Full Profile <span class="arrow-icon">→</span></div>
-                </div>
+    const influencerList = document.getElementById("influencer-list");
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userInfo = document.getElementById("user-info");
+    let currentUser = null;
 
-                <div class="influencer-card" onclick="loadInfluencerProfile('influencer_3')">
-                    <div class="trust-badge trust-medium">⚡ Mixed</div>
-                    <div class="card-header">
-                        <div class="card-profile">
-                            <div class="profile-image">SM</div>
-                            <div class="profile-info">
-                                <div class="influencer-name">Sarah Mitchell</div>
-                                <div class="influencer-niche">Real Estate</div>
-                                <div class="social-platforms">
-                                    <div class="platform-badge"><div class="platform-icon instagram">IG</div><span>450K</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stats-section">
-                        <div class="stat-item"><div class="stat-value">3.2</div><div class="stat-label">Rating</div></div>
-                        <div class="stat-item"><div class="stat-value">432</div><div class="stat-label">Reviews</div></div>
-                        <div class="stat-item"><div class="stat-value">58%</div><div class="stat-label">Recommend</div></div>
-                    </div>
-                    <div class="services-preview">
-                        <div class="services-title">Popular Services</div>
-                        <div class="service-tags">
-                            <div class="service-tag">Wholesaling Course • <span class="service-price">$997</span></div>
-                        </div>
-                    </div>
-                    <div class="card-action">View Full Profile <span class="arrow-icon">→</span></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    // === AUTH HANDLING ===
+    const provider = new GoogleAuthProvider();
+    loginBtn.addEventListener("click", () => signInWithPopup(auth, provider));
+    logoutBtn.addEventListener("click", () => signOut(auth));
 
-    <!-- Profile Modal -->
-    <div id="profileModal">
-        <div class="profile-modal-content">
-            <div id="profileHeader" class="profile-modal-header">
-                <!-- Filled dynamically -->
-                <button class="close" onclick="closeProfileModal()">×</button>
-            </div>
-            <div class="profile-tabs">
-                <button id="tabBtnServices" class="profile-tab-btn active" onclick="switchProfileTab('services')">Services</button>
-                <button id="tabBtnReviews" class="profile-tab-btn" onclick="switchProfileTab('reviews')">Reviews</button>
-            </div>
-            <div id="profileTabServices" class="profile-tab"></div>
-            <div id="profileTabReviews" class="profile-tab" style="display:none"></div>
-        </div>
-    </div>
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        userInfo.textContent = `Hi, ${user.displayName}`;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+      } else {
+        currentUser = null;
+        userInfo.textContent = "";
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+      }
+    });
 
-    <!-- Firebase (modular v10) -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { 
-            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup,
-            GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { 
-            getFirestore, collection, getDocs, query, orderBy, addDoc, doc, getDoc, setDoc, serverTimestamp
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    // === LOAD INFLUENCERS ===
+    async function loadInfluencers() {
+      const snapshot = await getDocs(collection(db, "influencers"));
+      snapshot.forEach(async (docSnap) => {
+        const data = docSnap.data();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="name">${data.name} ${data.verified ? "✔️" : ""}</div>
+          <div class="niche">${data.niche}</div>
+          <div><span class="rating">⭐ ${data.stats?.rating ?? "N/A"}</span> (${data.stats?.reviewCount ?? 0} reviews)</div>
+          <div class="tags">${(data.tags || []).map(t => `<span class="tag">${t}</span>`).join("")}</div>
+          <button class="review-btn" data-id="${docSnap.id}" style="margin-top:10px;">Write a Review</button>
+          <div id="form-${docSnap.id}" class="review-form">
+            <h4>Write a review for ${data.name}</h4>
+            <input type="text" id="title-${docSnap.id}" placeholder="Title" />
+            <textarea id="text-${docSnap.id}" placeholder="Share your experience..."></textarea>
+            <input type="number" id="rating-${docSnap.id}" placeholder="Rating (1-5)" min="1" max="5" />
+            <button class="submit-btn" data-id="${docSnap.id}">Submit</button>
+          </div>
+        `;
+        influencerList.appendChild(card);
+      });
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjYOUXAU1FusccFJQcsEWmo8W9CgSSmfA",
-            authDomain: "rateinflu.firebaseapp.com",
-            projectId: "rateinflu",
-            storageBucket: "rateinflu.firebasestorage.app",
-            messagingSenderId: "619786232167",
-            appId: "1:619786232167:web:eca2e76803201421eccfc2",
-            measurementId: "G-WPDZMZHMCW"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider();
-
-        let currentUser = null;
-        let isSignUp = false;
-
-        // Expose globals
-        window.loadInfluencerProfile = loadInfluencerProfile;
-        window.closeProfileModal = closeProfileModal;
-        window.switchProfileTab   = switchProfileTab;
-        window.searchInfluencers  = searchInfluencers;
-        window.openAuthModal      = openAuthModal;
-        window.closeAuthModal     = closeAuthModal;
-        window.toggleAuthMode     = toggleAuthMode;
-        window.signInWithGoogle   = signInWithGoogle;
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            updateAuthUI();
-        });
-
-        function updateAuthUI() {
-            const authContainer = document.getElementById('authContainer');
-            if (currentUser) {
-                const initial = (currentUser.displayName || currentUser.email || '?').charAt(0).toUpperCase();
-                authContainer.innerHTML = \`
-                    <div class="user-dropdown">
-                        <button class="user-btn" onclick="(function(){document.getElementById('dropdownMenu')?.classList.toggle('active')})()">
-                            <div class="user-avatar">\${initial}</div>
-                            <span>\${currentUser.displayName || currentUser.email}</span>
-                        </button>
-                        <div id="dropdownMenu" class="dropdown-menu">
-                            <div class="dropdown-item">My Reviews</div>
-                            <div class="dropdown-item">Settings</div>
-                            <div class="dropdown-item" id="signOutBtn">Sign Out</div>
-                        </div>
-                    </div>\`;
-                document.getElementById('signOutBtn').onclick = async ()=>{ await signOut(auth); };
-            } else {
-                authContainer.innerHTML = '<button class="btn-primary" onclick="openAuthModal()">Submit Review</button>';
-            }
+      document.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("review-btn")) {
+          const id = e.target.dataset.id;
+          const form = document.getElementById(`form-${id}`);
+          form.style.display = form.style.display === "block" ? "none" : "block";
         }
 
-        // Auth modal helpers
-        function openAuthModal(){ document.getElementById('authModal').classList.add('active'); }
-        function closeAuthModal(){ document.getElementById('authModal').classList.remove('active'); document.getElementById('errorMessage').classList.remove('active'); }
-        function toggleAuthMode(){
-            isSignUp = !isSignUp;
-            const title = document.getElementById('authTitle');
-            const subtitle = document.getElementById('authSubtitle');
-            const submitBtn = document.getElementById('authSubmitBtn');
-            const nameInput = document.getElementById('nameInput');
-            const switchText = document.getElementById('authSwitchText');
-            const switchLink = document.getElementById('authSwitchLink');
-            if (isSignUp) {
-                title.textContent = 'Sign Up'; subtitle.textContent = 'Create an account to write reviews';
-                submitBtn.textContent = 'Sign Up'; nameInput.style.display = 'block'; nameInput.required = true;
-                switchText.textContent = 'Already have an account?'; switchLink.textContent = 'Sign In';
-            } else {
-                title.textContent = 'Sign In'; subtitle.textContent = 'Access your account to write reviews';
-                submitBtn.textContent = 'Sign In'; nameInput.style.display = 'none'; nameInput.required = false;
-                switchText.textContent = "Don't have an account?"; switchLink.textContent = 'Sign Up';
+        if (e.target.classList.contains("submit-btn")) {
+          if (!currentUser) {
+            alert("Please sign in first!");
+            return;
+          }
+          const id = e.target.dataset.id;
+          const title = document.getElementById(`title-${id}`).value;
+          const text = document.getElementById(`text-${id}`).value;
+          const rating = Number(document.getElementById(`rating-${id}`).value);
+          if (!title || !text || !rating) return alert("Fill all fields.");
+
+          await setDoc(
+            doc(db, `influencers/${id}/reviews`, `${currentUser.uid}_${Date.now()}`),
+            {
+              userId: currentUser.uid,
+              userName: currentUser.displayName,
+              userAvatar: currentUser.photoURL,
+              title,
+              text,
+              rating,
+              timestamp: new Date().toISOString(),
             }
+          );
+          alert("✅ Review posted!");
+          document.getElementById(`form-${id}`).style.display = "none";
         }
+      });
+    }
 
-        document.getElementById('authForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            const name = document.getElementById('nameInput').value;
-            const errorMsg = document.getElementById('errorMessage');
-            try {
-                let userCredential;
-                if (isSignUp) {
-                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    if (name) { await updateProfile(userCredential.user, { displayName: name }); }
-                    await setDoc(doc(db, 'users', userCredential.user.uid), {
-                        displayName: name, email, createdAt: serverTimestamp(), reviewsWritten: 0
-                    });
-                } else {
-                    userCredential = await signInWithEmailAndPassword(auth, email, password);
-                }
-                closeAuthModal(); document.getElementById('authForm').reset();
-            } catch (error) {
-                errorMsg.textContent = error.message; errorMsg.classList.add('active');
-            }
-        });
-
-        async function signInWithGoogle() {
-            try {
-                const res = await signInWithPopup(auth, googleProvider);
-                const user = res.user;
-                const udoc = await getDoc(doc(db, 'users', user.uid));
-                if (!udoc.exists()) {
-                    await setDoc(doc(db, 'users', user.uid), {
-                        displayName: user.displayName, email: user.email, createdAt: serverTimestamp(), reviewsWritten: 0
-                    });
-                }
-                closeAuthModal();
-            } catch (error) {
-                const errorMsg = document.getElementById('errorMessage');
-                errorMsg.textContent = error.message; errorMsg.classList.add('active');
-            }
-        }
-
-        // Search (keeps UI intact; filters only static cards' outerHTML text)
-        function searchInfluencers() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('#influencersGrid .influencer-card');
-            cards.forEach(card => {
-                const txt = card.innerText.toLowerCase();
-                card.style.display = txt.includes(term) ? '' : 'none';
-            });
-        }
-
-        // Tabs
-        function switchProfileTab(name){
-            const btnServices = document.getElementById('tabBtnServices');
-            const btnReviews  = document.getElementById('tabBtnReviews');
-            const tabSvc = document.getElementById('profileTabServices');
-            const tabRev = document.getElementById('profileTabReviews');
-            if (name === 'services') {
-                btnServices.classList.add('active'); btnReviews.classList.remove('active');
-                tabSvc.style.display='block'; tabRev.style.display='none';
-            } else {
-                btnReviews.classList.add('active'); btnServices.classList.remove('active');
-                tabRev.style.display='block'; tabSvc.style.display='none';
-            }
-        }
-
-        // Modal controls
-        function closeProfileModal(){ document.getElementById('profileModal').style.display='none'; }
-        window.closeProfileModal = closeProfileModal;
-        document.getElementById('profileModal').addEventListener('click', (e)=>{ if(e.target.id==='profileModal') closeProfileModal(); });
-
-        // Firestore loader for modal
-        async function loadInfluencerProfile(influencerId){
-            // Open modal and show loading state
-            document.getElementById('profileModal').style.display='flex';
-            document.getElementById('profileHeader').innerHTML = '<div class="profile-modal-initials">…</div><div class="profile-modal-meta"><div class="profile-modal-name">Loading…</div></div>';
-            document.getElementById('profileTabServices').innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><p>Loading services…</p></div>';
-            document.getElementById('profileTabReviews').innerHTML  = '';
-
-            // Fetch influencer doc
-            const infRef = doc(db, 'influencers', influencerId);
-            const infSnap = await getDoc(infRef);
-            if(!infSnap.exists()){ 
-                document.getElementById('profileHeader').innerHTML = '<div class="profile-modal-meta"><div class="profile-modal-name">Profile not found</div></div>';
-                return;
-            }
-            const inf = { id: influencerId, ...infSnap.data() };
-            const initials = (inf.name || '').split(' ').map(n=>n[0]).join('').toUpperCase();
-            const trust = (inf.trustScore||0) > 80 ? '✓ Trusted' : (inf.trustScore||0) > 50 ? '⚡ Mixed' : '⚠️ Caution';
-
-            // Header fill
-            document.getElementById('profileHeader').innerHTML = \`
-                <div class="profile-modal-initials">\${initials}</div>
-                <div class="profile-modal-meta">
-                    <div class="profile-modal-name">\${inf.name || ''}</div>
-                    <div class="profile-modal-niche">\${inf.niche || ''} • \${trust}</div>
-                    <div class="profile-modal-social">
-                        \${Object.entries(inf.socialPlatforms||{}).map(([p,f])=>{
-                            const ab = p==='instagram'?'IG':p==='youtube'?'YT':p==='tiktok'?'TT':p==='twitter'?'X':p.slice(0,2).toUpperCase();
-                            const pretty = f>=1_000_000 ? (f/1_000_000).toFixed(1)+'M' : f>=1_000 ? Math.round(f/1_000)+'K' : f;
-                            return \`<span class="badge">\${ab} \${pretty}</span>\`;
-                        }).join('')}
-                    </div>
-                </div>
-                <button class="close" onclick="closeProfileModal()">×</button>
-            \`;
-
-            // Services
-            const svcSnap = await getDocs(collection(infRef, 'services'));
-            const services = svcSnap.docs.map(d=>d.data());
-            document.getElementById('profileTabServices').innerHTML = services.length
-                ? services.map(s=>\`<div class="service-row">💼 \${s.title || ''} — <span style="color:var(--success);font-weight:700">\${s.price ? '$'+s.price : ''}</span></div>\`).join('')
-                : '<p style="color:var(--gray)">No services listed.</p>';
-
-            // Reviews
-            const revSnap = await getDocs(query(collection(infRef,'reviews'), orderBy('createdAt','desc')));
-            const reviews = revSnap.docs.map(d=>d.data());
-            const reviewList = reviews.length
-                ? reviews.map(r=>\`<div class="review-row"><strong>\${r.userName || r.author || 'Anonymous'}</strong><p>\${r.text || ''}</p></div>\`).join('')
-                : '<p style="color:var(--gray)">No reviews yet.</p>';
-
-            const writeForm = currentUser 
-                ? \`<div class="review-form"><input id="newReviewInput" placeholder="Write a review..." /><button onclick="postReview('\${influencerId}')">Post</button></div>\`
-                : '<p style="color:var(--gray);margin-top:.5rem">Login to post a review.</p>';
-
-            document.getElementById('profileTabReviews').innerHTML = \`
-                <div class="section">
-                    <h3>Reviews</h3>
-                    \${reviewList}
-                    \${writeForm}
-                </div>
-            \`;
-
-            // Default to Services tab active
-            switchProfileTab('services');
-        }
-
-        async function postReview(influencerId){
-            const input = document.getElementById('newReviewInput');
-            if(!input) return;
-            const text = (input.value||'').trim();
-            if(!text) return;
-            if(!currentUser){ openAuthModal(); return; }
-            await addDoc(collection(db,'influencers',influencerId,'reviews'), {
-                text,
-                userName: currentUser.displayName || currentUser.email,
-                createdAt: serverTimestamp()
-            });
-            // refresh reviews tab
-            await loadInfluencerProfile(influencerId);
-            switchProfileTab('reviews');
-        }
-
-        // Category filter (just hides/shows static cards, keeps UI intact)
-        document.getElementById('categoriesContainer').addEventListener('click', (e) => {
-            if (!e.target.classList.contains('category-pill')) return;
-            document.querySelectorAll('.category-pill').forEach(p=>p.classList.remove('active'));
-            e.target.classList.add('active');
-            const cat = e.target.dataset.category;
-            const cards = document.querySelectorAll('#influencersGrid .influencer-card');
-            cards.forEach(card=>{
-                if(cat==='all'){ card.style.display=''; return; }
-                const txt = card.innerText.toLowerCase();
-                card.style.display = txt.includes(cat.replace('-',' ')) ? '' : 'none';
-            });
-        });
-
-        // Navbar scroll
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('nav');
-            if (window.scrollY > 50) { navbar.classList.add('scrolled'); } else { navbar.classList.remove('scrolled'); }
-        });
-
-        // Close dropdown on outside click
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.user-dropdown')) {
-                const dropdown = document.getElementById('dropdownMenu');
-                if (dropdown) dropdown.classList.remove('active');
-            }
-        });
-    </script>
+    loadInfluencers();
+  </script>
 </body>
 </html>
