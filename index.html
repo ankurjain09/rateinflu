@@ -43,10 +43,11 @@
         window.firebaseOrderBy = orderBy;
         window.firebaseLimit = limit;
 
-        // Initialize auth listener after DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            window.initializeApp();
-        });
+        // Set a flag when Firebase is ready
+        window.firebaseReady = true;
+        
+        // Dispatch a custom event when Firebase is loaded
+        window.dispatchEvent(new Event('firebaseLoaded'));
     </script>
 
     <style>
@@ -77,6 +78,13 @@
             background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
             min-height: 100vh;
             color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         /* Loading State */
@@ -949,8 +957,17 @@
         let influencersData = [];
         let activeCategory = 'all';
 
-        // Initialize app when DOM and Firebase are ready
-        window.initializeApp = function() {
+        // Wait for Firebase to load, then initialize
+        function initializeApp() {
+            // Check if Firebase is loaded
+            if (!window.firebaseAuth || !window.firebaseDB) {
+                console.log('Waiting for Firebase to load...');
+                setTimeout(initializeApp, 100);
+                return;
+            }
+
+            console.log('Firebase loaded, initializing app...');
+            
             // Auth state observer
             window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
                 currentUser = user;
@@ -961,7 +978,13 @@
                     loadInfluencers();
                 }
             });
-        };
+        }
+
+        // Alternative initialization if Firebase loads after DOM
+        window.addEventListener('firebaseLoaded', () => {
+            console.log('Firebase loaded event received');
+            initializeApp();
+        });
 
         // Handle Google Sign In
         async function handleSignIn() {
@@ -1164,13 +1187,13 @@
 
             // Show modal
             document.getElementById('profileModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('modal-open');
         }
 
         // Close profile modal
         function closeProfile() {
             document.getElementById('profileModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
+            document.body.classList.remove('modal-open');
         }
 
         // Close modal when clicking outside
