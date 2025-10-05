@@ -571,35 +571,6 @@
             font-weight: 700;
         }
 
-        /* Review Snippet */
-        .review-snippet {
-            padding: 1.5rem;
-            background: linear-gradient(135deg, #f0f9ff 0%, #fef3c7 100%);
-        }
-
-        .review-stars {
-            display: flex;
-            gap: 0.125rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .star {
-            color: #fbbf24;
-            font-size: 1rem;
-        }
-
-        .review-text {
-            font-size: 0.875rem;
-            color: var(--dark);
-            line-height: 1.5;
-            margin-bottom: 0.5rem;
-        }
-
-        .review-author {
-            font-size: 0.75rem;
-            color: var(--gray);
-        }
-
         /* View Profile Button */
         .card-action {
             padding: 1rem 1.5rem;
@@ -746,12 +717,6 @@
         .modal-section h3 {
             font-size: 1.5rem;
             color: var(--dark);
-            margin-bottom: 1rem;
-        }
-
-        .bio-text {
-            color: var(--gray);
-            line-height: 1.6;
             margin-bottom: 1rem;
         }
 
@@ -1098,6 +1063,58 @@
             const trustScore = influencer.trustScore || 50;
             const trustClass = trustScore >= 80 ? 'trust-high' : trustScore >= 60 ? 'trust-medium' : 'trust-low';
             const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixed' : '⚠️ Caution';
+            
+            const stats = influencer.stats || {};
+            const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+            
+            return `
+                <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+                    <div class="trust-badge ${trustClass}">${trustLabel}</div>
+                    <div class="card-header">
+                        <div class="card-profile">
+                            <div class="profile-image">
+                                ${influencer.avatar || influencer.name?.substring(0, 2).toUpperCase() || 'IN'}
+                                ${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
+                            </div>
+                            <div class="profile-info">
+                                <div class="influencer-name">${influencer.name || 'Unknown'}</div>
+                                <div class="influencer-niche">${influencer.niche || 'General'}</div>
+                                <div class="follower-count">👥 ${followers} followers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.rating?.toFixed(1) || 'N/A'}</div>
+                            <div class="stat-label">Rating</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${formatNumber(stats.reviewCount || 0)}</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.recommendPercent || 0}%</div>
+                            <div class="stat-label">Recommend</div>
+                        </div>
+                    </div>
+
+                    <div class="services-preview">
+                        <div class="services-title">Popular Services</div>
+                        <div class="service-tags">
+                            ${(influencer.services || []).slice(0, 3).map(service => `
+                                <div class="service-tag">${service.title} • <span class="service-price">$${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}</span></div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="card-action">
+                        View Full Profile
+                        <span class="arrow-icon">→</span>
+                    </div>
+                </div>
+            `;
+        }
 
         // Helper function to get total followers
         function getTotalFollowers(socialPlatforms) {
@@ -1147,36 +1164,64 @@
             
             document.getElementById('socialStats').innerHTML = socialStatsHTML;
 
-            // Load services for this influencer
             try {
-                const servicesHTML = (influencer.services || []).map(service => `
-                    <div class="service-card-detailed">
-                        <div class="service-title-detailed">${service.title}</div>
-                        <div class="service-description">
-                            ${service.description || 'No description available'}
+                // Load services from subcollection
+                const influencerDocRef = window.firebaseDoc(window.firebaseDB, 'influencers', influencerId);
+                const servicesRef = window.firebaseCollection(influencerDocRef, 'services');
+                const servicesSnapshot = await window.firebaseGetDocs(servicesRef);
+                
+                const servicesHTML = servicesSnapshot.docs.map(doc => {
+                    const service = doc.data();
+                    return `
+                        <div class="service-card-detailed">
+                            <div class="service-title-detailed">${service.title}</div>
+                            <div class="service-description">
+                                ${service.description || 'No description available'}
+                            </div>
+                            ${service.features ? `
+                                <ul style="color: var(--gray); font-size: 0.875rem; margin: 1rem 0;">
+                                    ${service.features.map(feature => `<li>${feature}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+                                <div class="service-price-badge">
+                                    $${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}
+                                </div>
+                                ${service.type ? `<span style="color: var(--gray); font-size: 0.875rem;">Type: ${service.type}</span>` : ''}
+                                ${service.duration ? `<span style="color: var(--gray); font-size: 0.875rem;">Duration: ${service.duration}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="service-price-badge">
-                            ${service.price}${service.priceUnit ? '/' + service.priceUnit : ''}
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 document.getElementById('servicesContent').innerHTML = servicesHTML || '<p style="color: var(--gray);">No services available</p>';
 
                 // Load reviews from subcollection
-                const influencerDocRef = window.firebaseDoc(window.firebaseDB, 'influencers', influencerId);
                 const reviewsRef = window.firebaseCollection(influencerDocRef, 'reviews');
                 const reviewsSnapshot = await window.firebaseGetDocs(reviewsRef);
                 
                 const reviewsHTML = reviewsSnapshot.docs.map(doc => {
                     const review = doc.data();
                     const stars = '★'.repeat(Math.round(review.rating || 0)) + '☆'.repeat(5 - Math.round(review.rating || 0));
+                    const date = review.createdAt?.toDate ? review.createdAt.toDate().toLocaleDateString() : 
+                                review.timestamp ? new Date(review.timestamp).toLocaleDateString() : '';
+                    
                     return `
                         <div style="background: var(--light-gray); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
-                            <div style="color: #fbbf24; margin-bottom: 0.5rem;">${stars}</div>
-                            <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;">${review.title || 'Review'}</div>
-                            <div style="color: var(--gray); line-height: 1.6; margin-bottom: 0.5rem;">${review.text || 'No review text'}</div>
-                            <div style="font-size: 0.75rem; color: var(--gray);">- ${review.userName || 'Anonymous'}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                <div>
+                                    <div style="color: #fbbf24; margin-bottom: 0.5rem;">${stars}</div>
+                                    <div style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;">${review.title || 'Review'}</div>
+                                </div>
+                                ${review.verified ? '<span style="background: var(--success); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">Verified</span>' : ''}
+                            </div>
+                            <div style="color: var(--gray); line-height: 1.6; margin-bottom: 1rem;">${review.text || 'No review text'}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 0.875rem; color: var(--gray);">
+                                    - ${review.userName || 'Anonymous'} ${date ? `• ${date}` : ''}
+                                </div>
+                                ${review.helpful ? `<span style="font-size: 0.75rem; color: var(--gray);">👍 ${review.helpful} found this helpful</span>` : ''}
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -1200,13 +1245,6 @@
             document.body.classList.remove('modal-open');
         }
 
-        // Close modal when clicking outside
-        document.getElementById('profileModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeProfile();
-            }
-        });
-
         // Search functionality
         function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1226,24 +1264,6 @@
             displayInfluencers(filtered);
         }
 
-        // Category filter setup
-        document.querySelectorAll('.category-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-                this.classList.add('active');
-                
-                activeCategory = this.dataset.category;
-                performSearch();
-            });
-        });
-
-        // Search on Enter key
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-
         // Display error state
         function displayError() {
             const grid = document.getElementById('influencerGrid');
@@ -1256,14 +1276,69 @@
             `;
         }
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
+        // Setup event listeners once DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            
+            // Try to initialize if Firebase is already loaded
+            if (window.firebaseAuth && window.firebaseDB) {
+                console.log('Firebase already loaded, initializing...');
+                initializeApp();
             } else {
-                navbar.classList.remove('scrolled');
+                console.log('Waiting for Firebase...');
+                // Wait for Firebase to load
+                let attempts = 0;
+                const checkFirebase = setInterval(() => {
+                    attempts++;
+                    if (window.firebaseAuth && window.firebaseDB) {
+                        console.log('Firebase loaded after', attempts, 'attempts');
+                        clearInterval(checkFirebase);
+                        initializeApp();
+                    } else if (attempts > 50) { // 5 seconds timeout
+                        console.error('Firebase failed to load');
+                        clearInterval(checkFirebase);
+                        displayError();
+                    }
+                }, 100);
             }
+
+            // Close modal when clicking outside
+            const modal = document.getElementById('profileModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeProfile();
+                    }
+                });
+            }
+
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // Category filter setup
+            document.querySelectorAll('.category-pill').forEach(pill => {
+                pill.addEventListener('click', function() {
+                    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    activeCategory = this.dataset.category;
+                    performSearch();
+                });
+            });
+
+            // Search on Enter key
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
         });
     </script>
 </body>
