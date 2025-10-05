@@ -959,6 +959,8 @@
 
         // Wait for Firebase to load, then initialize
         function initializeApp() {
+            console.log('initializeApp called');
+            
             // Check if Firebase is loaded
             if (!window.firebaseAuth || !window.firebaseDB) {
                 console.log('Waiting for Firebase to load...');
@@ -970,11 +972,13 @@
             
             // Auth state observer
             window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
+                console.log('Auth state changed:', user ? user.email : 'not signed in');
                 currentUser = user;
                 updateAuthUI(user);
                 
                 // Load influencers when auth state is ready
                 if (!influencersData.length) {
+                    console.log('Loading influencers...');
                     loadInfluencers();
                 }
             });
@@ -1093,7 +1097,7 @@
         function createInfluencerCard(influencer) {
             const trustScore = influencer.trustScore || 50;
             const trustClass = trustScore >= 80 ? 'trust-high' : trustScore >= 60 ? 'trust-medium' : 'trust-low';
-            const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixe
+            const trustLabel = trustScore >= 80 ? '✓ Trusted' : trustScore >= 60 ? '⚡ Mixed' : '⚠️ Caution';
 
         // Helper function to get total followers
         function getTotalFollowers(socialPlatforms) {
