@@ -9,7 +9,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
         // Your Firebase configuration
         const firebaseConfig = {
@@ -39,10 +39,13 @@
         window.firebaseCollection = collection;
         window.firebaseDoc = doc;
         window.firebaseGetDoc = getDoc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseAddDoc = addDoc;
         window.firebaseQuery = query;
         window.firebaseWhere = where;
         window.firebaseOrderBy = orderBy;
         window.firebaseLimit = limit;
+        window.firebaseServerTimestamp = serverTimestamp;
 
         // Set a flag when Firebase is ready
         window.firebaseReady = true;
@@ -214,10 +217,22 @@
             font-weight: 500;
             transition: color 0.3s;
             position: relative;
+            cursor: pointer;
         }
 
-        .nav-links a:hover {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--primary);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
         }
 
         .btn-primary {
@@ -707,6 +722,32 @@
             margin-bottom: 1rem;
         }
 
+        /* Social Links */
+        .social-links {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
         .modal-body {
             padding: 2rem;
         }
@@ -787,6 +828,113 @@
             font-weight: 600;
         }
 
+        /* Review Form */
+        .review-form-section {
+            background: var(--light-gray);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+        }
+
+        .review-form-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .star {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #fbbf24;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-review-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-review-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .submit-review-btn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-prompt {
+            background: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* Page sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -805,6 +953,10 @@
                 flex-direction: column;
                 text-align: center;
             }
+
+            .social-links {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -812,15 +964,16 @@
     <!-- Navigation -->
     <nav id="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <div class="logo" onclick="showPage('browse')">
                 <div class="logo-icon">✓</div>
                 <span>TrustReview</span>
             </div>
             <div class="nav-links">
-                <a href="#">Browse</a>
-                <a href="#">Categories</a>
-                <a href="#">Top Rated</a>
-                <a href="#">How It Works</a>
+                <a onclick="showPage('browse')" class="nav-link active" data-page="browse">Browse</a>
+                <a onclick="showPage('categories')" class="nav-link" data-page="categories">Categories</a>
+                <a onclick="showPage('top-rated')" class="nav-link" data-page="top-rated">Top Rated</a>
+                <a onclick="showPage('submit-review')" class="nav-link" data-page="submit-review">Submit Review</a>
+                <a onclick="showPage('about')" class="nav-link" data-page="about">About</a>
                 <div id="authContainer">
                     <button class="auth-button" id="signInBtn" onclick="handleSignIn()">
                         Sign in with Google
@@ -832,52 +985,82 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Hero Section -->
-        <div class="hero">
-            <h1>Find Trusted Influencer Services</h1>
-            <p>Community-verified reviews for courses, bootcamps, and coaching programs</p>
-            
-            <div class="trust-indicators">
-                <div class="trust-indicator">
-                    <div class="trust-indicator-icon">✓</div>
-                    <span id="totalReviews">Loading...</span>
+        <!-- Browse Page (Main) -->
+        <div id="browsePage" class="page-section active">
+            <!-- Hero Section -->
+            <div class="hero">
+                <h1>Find Trusted Influencer Services</h1>
+                <p>Community-verified reviews for courses, bootcamps, and coaching programs</p>
+                
+                <div class="trust-indicators">
+                    <div class="trust-indicator">
+                        <div class="trust-indicator-icon">✓</div>
+                        <span id="totalReviews">Loading...</span>
+                    </div>
+                    <div class="trust-indicator">
+                        <div class="trust-indicator-icon">⭐</div>
+                        <span id="avgRating">Loading...</span>
+                    </div>
+                    <div class="trust-indicator">
+                        <div class="trust-indicator-icon">🛡️</div>
+                        <span>Scam Protection</span>
+                    </div>
                 </div>
-                <div class="trust-indicator">
-                    <div class="trust-indicator-icon">⭐</div>
-                    <span id="avgRating">Loading...</span>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search influencers, courses, or services...">
+                    <button class="search-btn" onclick="performSearch()">Search</button>
                 </div>
-                <div class="trust-indicator">
-                    <div class="trust-indicator-icon">🛡️</div>
-                    <span>Scam Protection</span>
+                
+                <div class="categories" id="categoryFilters">
+                    <div class="category-pill active" data-category="all">All Categories</div>
+                    <div class="category-pill" data-category="fitness">💪 Fitness</div>
+                    <div class="category-pill" data-category="trading">💰 Trading</div>
+                    <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
+                    <div class="category-pill" data-category="beauty">💄 Beauty</div>
+                    <div class="category-pill" data-category="tech">💻 Tech</div>
+                    <div class="category-pill" data-category="education">📚 Education</div>
+                    <div class="category-pill" data-category="marketing">🎯 Marketing</div>
+                    <div class="category-pill" data-category="wellness">🧘 Wellness</div>
+                </div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="cards-grid" id="influencerGrid">
+                <div class="loading-container">
+                    <div class="spinner"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Search and Filters -->
-        <div class="search-section">
-            <div class="search-bar">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search influencers, courses, or services...">
-                <button class="search-btn" onclick="performSearch()">Search</button>
-            </div>
-            
-            <div class="categories" id="categoryFilters">
-                <div class="category-pill active" data-category="all">All Categories</div>
-                <div class="category-pill" data-category="fitness">💪 Fitness</div>
-                <div class="category-pill" data-category="trading">💰 Trading</div>
-                <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
-                <div class="category-pill" data-category="beauty">💄 Beauty</div>
-                <div class="category-pill" data-category="tech">💻 Tech</div>
-                <div class="category-pill" data-category="education">📚 Education</div>
-                <div class="category-pill" data-category="marketing">🎯 Marketing</div>
-                <div class="category-pill" data-category="wellness">🧘 Wellness</div>
+        <!-- Categories Page -->
+        <div id="categoriesPage" class="page-section">
+            <h1>Browse by Category</h1>
+            <p>Coming soon: Detailed category browsing with advanced filters</p>
+        </div>
+
+        <!-- Top Rated Page -->
+        <div id="top-ratedPage" class="page-section">
+            <h1>Top Rated Influencers</h1>
+            <p>Coming soon: Leaderboard of highest-rated influencers</p>
+        </div>
+
+        <!-- Submit Review Page -->
+        <div id="submit-reviewPage" class="page-section">
+            <h1>Submit a Review</h1>
+            <p>Share your experience with influencer courses and services</p>
+            <div style="margin-top: 2rem;">
+                <p>Coming soon: Review submission form</p>
             </div>
         </div>
 
-        <!-- Cards Grid -->
-        <div class="cards-grid" id="influencerGrid">
-            <div class="loading-container">
-                <div class="spinner"></div>
-            </div>
+        <!-- About Page -->
+        <div id="aboutPage" class="page-section">
+            <h1>About TrustReview</h1>
+            <p>Coming soon: Learn how our trust system works</p>
         </div>
     </div>
 
@@ -892,6 +1075,9 @@
                         <h2 id="modalName">Loading...</h2>
                         <p id="modalInfo">Loading...</p>
                         <p id="modalBio">Loading...</p>
+                        <div class="social-links" id="socialLinks">
+                            <!-- Social links will be inserted here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -913,6 +1099,45 @@
                         <p style="color: var(--gray);">Loading reviews...</p>
                     </div>
                 </div>
+
+                <!-- Add Review Form -->
+                <div class="review-form-section" id="reviewFormSection">
+                    <div class="review-form-title">Write a Review</div>
+                    <div id="authPrompt" class="auth-prompt" style="display: none;">
+                        Please sign in to write a review
+                    </div>
+                    <form id="reviewForm" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Rating</label>
+                            <div class="star-rating" id="starRating">
+                                <span class="star" data-rating="1">☆</span>
+                                <span class="star" data-rating="2">☆</span>
+                                <span class="star" data-rating="3">☆</span>
+                                <span class="star" data-rating="4">☆</span>
+                                <span class="star" data-rating="5">☆</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="reviewService">Service/Course</label>
+                            <select class="form-select" id="reviewService" required>
+                                <option value="">Select a service...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reviewTitle">Review Title</label>
+                            <input type="text" class="form-input" id="reviewTitle" placeholder="Summarize your experience" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reviewText">Your Review</label>
+                            <textarea class="form-textarea" id="reviewText" placeholder="Share your detailed experience..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="submit-review-btn" id="submitReviewBtn">Submit Review</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -922,6 +1147,27 @@
         let currentUser = null;
         let influencersData = [];
         let activeCategory = 'all';
+        let currentInfluencerId = null;
+        let selectedRating = 0;
+
+        // Page navigation
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageName + 'Page').classList.add('active');
+            
+            // Update nav active state
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.page === pageName) {
+                    link.classList.add('active');
+                }
+            });
+        }
 
         // Wait for Firebase to load, then initialize
         function initializeApp() {
@@ -941,6 +1187,7 @@
                 console.log('Auth state changed:', user ? user.email : 'not signed in');
                 currentUser = user;
                 updateAuthUI(user);
+                updateReviewForm(user);
                 
                 // Load influencers when auth state is ready
                 if (!influencersData.length) {
@@ -998,6 +1245,20 @@
                         Sign in with Google
                     </button>
                 `;
+            }
+        }
+
+        // Update Review Form visibility
+        function updateReviewForm(user) {
+            const authPrompt = document.getElementById('authPrompt');
+            const reviewForm = document.getElementById('reviewForm');
+            
+            if (user) {
+                authPrompt.style.display = 'none';
+                reviewForm.style.display = 'block';
+            } else {
+                authPrompt.style.display = 'block';
+                reviewForm.style.display = 'none';
             }
         }
 
@@ -1136,8 +1397,21 @@
             return num.toString();
         }
 
+        // Get social icon
+        function getSocialIcon(platform) {
+            const icons = {
+                instagram: '📷',
+                tiktok: '🎵',
+                youtube: '📺',
+                twitter: '🐦',
+                facebook: '👍'
+            };
+            return icons[platform.toLowerCase()] || '🔗';
+        }
+
         // View influencer profile
         async function viewInfluencerProfile(influencerId) {
+            currentInfluencerId = influencerId;
             const influencer = influencersData.find(inf => inf.id === influencerId);
             
             if (!influencer) {
@@ -1154,11 +1428,20 @@
             document.getElementById('modalInfo').textContent = `${influencer.niche || 'General'} • ${followers} followers${verifiedBadge}`;
             document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
 
+            // Add social links
+            const socialLinksHTML = influencer.socialLinks ? 
+                Object.entries(influencer.socialLinks).map(([platform, url]) => `
+                    <a href="${url}" target="_blank" class="social-link" title="${platform}">
+                        ${getSocialIcon(platform)}
+                    </a>
+                `).join('') : '';
+            document.getElementById('socialLinks').innerHTML = socialLinksHTML;
+
             // Update social stats
             const socialStatsHTML = influencer.socialPlatforms ? 
                 Object.entries(influencer.socialPlatforms).map(([platform, count]) => `
                     <div class="social-stat">
-                        <span class="social-platform">${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                        <span class="social-platform">${getSocialIcon(platform)} ${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
                         <span class="social-count">${formatFollowers(count)}</span>
                     </div>
                 `).join('') : '<p style="color: var(--gray);">No social media data available</p>';
@@ -1171,8 +1454,17 @@
                 const servicesRef = window.firebaseCollection(influencerDocRef, 'services');
                 const servicesSnapshot = await window.firebaseGetDocs(servicesRef);
                 
+                // Update service dropdown for review form
+                const serviceSelect = document.getElementById('reviewService');
+                serviceSelect.innerHTML = '<option value="">Select a service...</option>';
+                
                 const servicesHTML = servicesSnapshot.docs.map(doc => {
                     const service = doc.data();
+                    const serviceId = doc.id;
+                    
+                    // Add to dropdown
+                    serviceSelect.innerHTML += `<option value="${serviceId}">${service.title}</option>`;
+                    
                     return `
                         <div class="service-card-detailed">
                             <div class="service-title-detailed">${service.title}</div>
@@ -1244,6 +1536,75 @@
         function closeProfile() {
             document.getElementById('profileModal').classList.remove('active');
             document.body.classList.remove('modal-open');
+            currentInfluencerId = null;
+            selectedRating = 0;
+            document.getElementById('reviewForm').reset();
+            updateStarDisplay();
+        }
+
+        // Update star display
+        function updateStarDisplay() {
+            document.querySelectorAll('.star').forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.textContent = '★';
+                    star.classList.add('active');
+                } else {
+                    star.textContent = '☆';
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        // Submit review
+        async function submitReview(e) {
+            e.preventDefault();
+            
+            if (!currentUser || !currentInfluencerId) {
+                alert('Please sign in to submit a review');
+                return;
+            }
+
+            if (selectedRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitReviewBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const influencerDocRef = window.firebaseDoc(window.firebaseDB, 'influencers', currentInfluencerId);
+                const reviewsRef = window.firebaseCollection(influencerDocRef, 'reviews');
+                
+                await window.firebaseAddDoc(reviewsRef, {
+                    rating: selectedRating,
+                    serviceId: document.getElementById('reviewService').value,
+                    title: document.getElementById('reviewTitle').value,
+                    text: document.getElementById('reviewText').value,
+                    userName: currentUser.displayName,
+                    userEmail: currentUser.email,
+                    userId: currentUser.uid,
+                    createdAt: window.firebaseServerTimestamp(),
+                    verified: false,
+                    helpful: 0
+                });
+
+                alert('Review submitted successfully!');
+                document.getElementById('reviewForm').reset();
+                selectedRating = 0;
+                updateStarDisplay();
+                
+                // Reload the profile to show the new review
+                await viewInfluencerProfile(currentInfluencerId);
+                
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert('Failed to submit review. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Review';
+            }
         }
 
         // Search functionality
@@ -1340,6 +1701,31 @@
                     performSearch();
                 }
             });
+
+            // Star rating setup
+            document.querySelectorAll('.star').forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    updateStarDisplay();
+                });
+                
+                star.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    document.querySelectorAll('.star').forEach((s, index) => {
+                        if (index < rating) {
+                            s.textContent = '★';
+                        } else {
+                            s.textContent = '☆';
+                        }
+                    });
+                });
+            });
+
+            // Reset stars on mouse leave
+            document.getElementById('starRating').addEventListener('mouseleave', updateStarDisplay);
+
+            // Review form submission
+            document.getElementById('reviewForm').addEventListener('submit', submitReview);
         });
     </script>
 </body>
