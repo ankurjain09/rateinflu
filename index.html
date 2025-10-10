@@ -1,16 +1,3 @@
-Here’s your fully merged `index.html` with:
-
-* Original Firebase SDK + config intact
-* All influencer, modal, and search functionality preserved
-* Lighter CSS (trimmed shadows/duplication, consolidated rules) while maintaining the same look
-* Profile-pic dropdown (My Reviews, Saved Influencers, Profile Settings, Sign Out)
-* New **My Reviews** page with dynamic loading and a **Delete** button per review
-* Top nav links **Categories / Top Rated / Submit Review** removed
-* Everything else (auth, modals, etc.) untouched
-
-Just replace your file with this one.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,11 +5,11 @@ Just replace your file with this one.
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TrustReview - Verified Influencer Reviews</title>
 
-  <!-- Firebase SDK (kept exactly, with a couple of safe adds for needed features) -->
+  <!-- Firebase SDK (kept intact) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
     import {
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, updateProfile
     } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
     import {
       getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc,
@@ -65,16 +52,15 @@ Just replace your file with this one.
     window.firebaseOrderBy = orderBy;
     window.firebaseLimit = limit;
     window.firebaseServerTimestamp = serverTimestamp;
-
-    // Added for My Reviews & Delete
     window.firebaseCollectionGroup = collectionGroup;
     window.firebaseDeleteDoc = deleteDoc;
+    window.firebaseUpdateProfile = updateProfile;
 
     window.firebaseReady = true;
     window.dispatchEvent(new Event('firebaseLoaded'));
   </script>
 
-  <!-- Lighter CSS: consolidated shadows, trimmed duplicate rules, same look -->
+  <!-- Lighter CSS: consolidated, same look -->
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -140,8 +126,7 @@ Just replace your file with this one.
     .influencer-name{font-size:1.125rem;font-weight:700;margin-bottom:.15rem}
     .influencer-niche{display:inline-block;background:var(--primary);color:#fff;padding:.2rem .5rem;border-radius:6px;font-size:.72rem;font-weight:700;margin-bottom:.35rem}
     .follower-count{font-size:.9rem;color:var(--gray);display:flex;gap:.4rem;align-items:center}
-    .trust-badge{position:absolute;top:.75rem;right:.75rem;padding:.3rem .6rem;border-radius:8px;font-size:.72rem;font-weight:800}
-    .trust-high{background:var(--success);color:#fff}.trust-medium{background:var(--warning);color:#fff}.trust-low{background:var(--danger);color:#fff}
+
     .stats-section{padding:1rem;background:var(--light);display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
     .stat-item{text-align:center}.stat-value{font-size:1.25rem;font-weight:800;color:var(--primary)}.stat-label{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:.15rem}
     .services-preview{padding:1rem;border-top:1px solid var(--light)}
@@ -230,7 +215,6 @@ Just replace your file with this one.
         <div class="logo-icon">✓</div><span>TrustReview</span>
       </div>
       <div class="nav-links">
-        <!-- Kept minimal: removed Categories / Top Rated / Submit Review -->
         <a class="nav-link active" data-page="browse" onclick="showPage('browse')">Browse</a>
         <a class="nav-link" data-page="about" onclick="showPage('about')">About</a>
         <div id="authContainer"><button class="auth-button" id="signInBtn" onclick="handleSignIn()">Sign in with Google</button></div>
@@ -258,7 +242,7 @@ Just replace your file with this one.
           <button class="search-btn" onclick="performSearch()">Search</button>
         </div>
 
-        <!-- Category pills still present (not top nav links) -->
+        <!-- Category pills (not top nav links) -->
         <div class="categories" id="categoryFilters">
           <div class="category-pill active" data-category="all">All Categories</div>
           <div class="category-pill" data-category="fitness">💪 Fitness</div>
@@ -289,22 +273,58 @@ Just replace your file with this one.
       </div>
     </div>
 
-    <!-- Saved Influencers Page (placeholder, intact nav path) -->
-    <div id="saved-influencersPage" class="page-section">
-      <h1 style="margin-bottom:.5rem;">Saved Influencers</h1>
-      <p style="color:var(--gray)">You haven’t saved any influencers yet.</p>
-    </div>
-
-    <!-- Profile Settings Page (placeholder) -->
+    <!-- Profile Settings Page -->
     <div id="profile-settingsPage" class="page-section">
-      <h1 style="margin-bottom:.5rem;">Profile Settings</h1>
-      <p style="color:var(--gray)">Coming soon.</p>
+      <h1 style="margin-bottom:1rem;">Profile Settings</h1>
+      <div id="profileAuth" class="auth-prompt" style="display:none">
+        Please sign in to manage your profile.
+        <div style="margin-top:.6rem"><button class="auth-button" onclick="handleSignIn()">Sign in with Google</button></div>
+      </div>
+
+      <div id="profileCard" style="display:none;background:#fff;border:1px solid var(--light);box-shadow:var(--shadow);border-radius:16px;padding:1rem;max-width:720px;">
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
+          <div id="profilePhoto" class="user-avatar" style="width:56px;height:56px;border-radius:12px;">U</div>
+          <div>
+            <div id="profileName" style="font-weight:800;">User</div>
+            <div id="profileEmail" style="color:var(--gray);font-size:.95rem;">email@example.com</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="displayNameInput">Display Name</label>
+          <input id="displayNameInput" class="form-input" placeholder="Your name"/>
+        </div>
+
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <button id="saveProfileBtn" class="btn-primary">Save Changes</button>
+          <span id="saveStatus" style="font-size:.95rem;color:var(--gray);display:none;"></span>
+        </div>
+      </div>
     </div>
 
     <!-- About Page -->
     <div id="aboutPage" class="page-section">
       <h1>About TrustReview</h1>
-      <p>Coming soon: Learn how our trust system works.</p>
+      <p style="margin: .5rem 0 1rem; color: var(--gray); max-width: 820px;">
+        TrustReview is a community-driven platform where real customers review and verify influencers,
+        coaches, and online courses. Our goal is to bring <strong>transparency</strong> to the creator economy by
+        helping you find credible services and avoid costly scams.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem;">
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">🧠 Transparency</div>
+          <div style="color:var(--gray);">Real reviews tied to real purchases and users.</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">✅ Authenticity</div>
+          <div style="color:var(--gray);">Signal-vs-noise: verified reviews surface first.</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">🔒 Scam Protection</div>
+          <div style="color:var(--gray);">Community flags & moderation keep bad actors out.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -380,7 +400,7 @@ Just replace your file with this one.
     let currentInfluencerId = null;
     let selectedRating = 0;
 
-    // Page navigation (also supports ?page=... and updates URL)
+    // Page navigation
     function showPage(pageName) {
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
       const el = document.getElementById(pageName + 'Page');
@@ -390,10 +410,9 @@ Just replace your file with this one.
         a.classList.toggle('active', a.dataset.page === pageName);
       });
 
-      // Trigger dynamic loads
       if (pageName === 'my-reviews') loadMyReviews();
+      if (pageName === 'profile-settings') loadProfileSettings();
 
-      // reflect in url (no reload)
       const url = new URL(window.location);
       url.searchParams.set('page', pageName);
       history.replaceState({}, '', url);
@@ -409,7 +428,22 @@ Just replace your file with this one.
         updateReviewForm(user);
         if (!influencersData.length) await loadInfluencers();
 
-        // If URL asks for a page, honor it; else stay on current
+        // Auto-create users/{uid} profile doc on sign in
+        if (user) {
+          try {
+            const uref = window.firebaseDoc(window.firebaseDB, 'users', user.uid);
+            const usnap = await window.firebaseGetDoc(uref);
+            if (!usnap.exists()) {
+              await window.firebaseSetDoc(uref, {
+                displayName: user.displayName || '',
+                email: user.email || '',
+                photoURL: user.photoURL || '',
+                lastUpdated: window.firebaseServerTimestamp()
+              });
+            }
+          } catch (e) { console.warn('User profile bootstrap failed', e); }
+        }
+
         const params = new URLSearchParams(window.location.search);
         const p = params.get('page');
         if (p) showPage(p);
@@ -441,7 +475,6 @@ Just replace your file with this one.
           <div class="user-avatar" id="avatarBtn">${img}</div>
           <div class="menu" id="userMenu">
             <button onclick="showPage('my-reviews'); closeMenu()">📝 My Reviews</button>
-            <button onclick="showPage('saved-influencers'); closeMenu()">💾 Saved Influencers</button>
             <button onclick="showPage('profile-settings'); closeMenu()">⚙️ Profile Settings</button>
             <hr/>
             <button onclick="handleSignOut()">🚪 Sign Out</button>
@@ -449,7 +482,6 @@ Just replace your file with this one.
         </div>
       `;
 
-      // Toggle
       const avatar = document.getElementById('avatarBtn');
       const menu = document.getElementById('userMenu');
       avatar.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('open'); };
@@ -499,14 +531,13 @@ Just replace your file with this one.
     }
 
     function createInfluencerCard(influencer){
-      const trustScore = influencer.trustScore || 50;
-      const trustClass = trustScore>=80?'trust-high':trustScore>=60?'trust-medium':'trust-low';
-      const trustLabel = trustScore>=80?'✓ Trusted':trustScore>=60?'⚡ Mixed':'⚠️ Caution';
       const stats = influencer.stats||{};
+      const rating = (typeof stats.rating === 'number') ? stats.rating.toFixed(1) : '4.5';
+      const revCount = formatNumber(stats.reviewCount||0);
       const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+
       return `
         <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
-          <div class="trust-badge ${trustClass}">${trustLabel}</div>
           <div class="card-header">
             <div class="card-profile">
               <div class="profile-image">
@@ -516,13 +547,13 @@ Just replace your file with this one.
               <div class="profile-info">
                 <div class="influencer-name">${influencer.name||'Unknown'}</div>
                 <div class="influencer-niche">${influencer.niche||'General'}</div>
-                <div class="follower-count">👥 ${followers} followers</div>
+                <div class="follower-count">⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}</div>
               </div>
             </div>
           </div>
           <div class="stats-section">
-            <div class="stat-item"><div class="stat-value">${(stats.rating?.toFixed?.(1))||'N/A'}</div><div class="stat-label">Rating</div></div>
-            <div class="stat-item"><div class="stat-value">${formatNumber(stats.reviewCount||0)}</div><div class="stat-label">Reviews</div></div>
+            <div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
+            <div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
             <div class="stat-item"><div class="stat-value">${stats.recommendPercent||0}%</div><div class="stat-label">Recommend</div></div>
           </div>
           <div class="services-preview">
@@ -541,7 +572,7 @@ Just replace your file with this one.
     function formatNumber(n){ if(n>=1e3) return (n/1e3).toFixed(1)+'k'; return n.toString(); }
     function getSocialIcon(p){ const i={instagram:'📷',tiktok:'🎵',youtube:'📺',twitter:'🐦',facebook:'👍'}; return i[(p||'').toLowerCase()]||'🔗'; }
 
-    // Profile modal logic (kept)
+    // Profile modal logic
     async function viewInfluencerProfile(influencerId){
       currentInfluencerId = influencerId;
       const influencer = influencersData.find(inf=>inf.id===influencerId);
@@ -689,9 +720,19 @@ Just replace your file with this one.
       list.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
 
       try{
-        // Query every 'reviews' subcollection where userId == currentUser.uid
         const cg = window.firebaseCollectionGroup(window.firebaseDB,'reviews');
-        const q = window.firebaseQuery(cg, window.firebaseWhere('userId','==',currentUser.uid), window.firebaseOrderBy('createdAt','desc'));
+        let q;
+        try {
+          q = window.firebaseQuery(
+            cg,
+            window.firebaseWhere('userId','==',currentUser.uid),
+            window.firebaseOrderBy('createdAt','desc')
+          );
+        } catch (err) {
+          console.warn('Index missing, using fallback (no sort).', err);
+          q = window.firebaseQuery(cg, window.firebaseWhere('userId','==',currentUser.uid));
+        }
+
         const snap = await window.firebaseGetDocs(q);
 
         if (snap.empty){
@@ -711,7 +752,7 @@ Just replace your file with this one.
           }
           const stars = '★'.repeat(Math.round(r.rating||0))+'☆'.repeat(5-Math.round(r.rating||0));
           const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : '';
-          const reviewIdPath = d.ref.path; // for deletion
+          const reviewIdPath = d.ref.path;
           return `
             <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;margin:0 0 .8rem 0;box-shadow:var(--shadow);">
               <div style="display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
@@ -733,7 +774,7 @@ Just replace your file with this one.
 
         list.innerHTML = rows.join('');
       }catch(e){
-        console.error(e);
+        console.error('Error loading my reviews:', e);
         list.innerHTML = `<div class="empty-state"><h3>Could not load your reviews</h3><p>Please try again.</p></div>`;
       }
     }
@@ -742,7 +783,6 @@ Just replace your file with this one.
     async function deleteReview(path){
       if(!confirm('Delete this review? This cannot be undone.')) return;
       try{
-        // path format: influencers/{id}/reviews/{reviewId}
         const seg = path.split('/');
         if (seg.length!==4){ alert('Invalid review path.'); return; }
         const ref = window.firebaseDoc(window.firebaseDB, seg[0], seg[1], seg[2], seg[3]);
@@ -750,6 +790,65 @@ Just replace your file with this one.
         alert('Review deleted.');
         loadMyReviews();
       }catch(e){ console.error(e); alert('Failed to delete review.'); }
+    }
+
+    // PROFILE SETTINGS: load + save display name
+    async function loadProfileSettings(){
+      const gate = document.getElementById('profileAuth');
+      const card = document.getElementById('profileCard');
+      if(!currentUser){
+        gate.style.display='block'; card.style.display='none'; return;
+      }
+      gate.style.display='none'; card.style.display='block';
+
+      const initial = currentUser.displayName?.charAt(0)?.toUpperCase() || 'U';
+      const photo = currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="${currentUser.displayName}"/>` : initial;
+      document.getElementById('profilePhoto').innerHTML = photo;
+      document.getElementById('profileName').textContent = currentUser.displayName || 'User';
+      document.getElementById('profileEmail').textContent = currentUser.email || '';
+
+      // Try to read user profile doc
+      try {
+        const uref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid);
+        const usnap = await window.firebaseGetDoc(uref);
+        const nameField = document.getElementById('displayNameInput');
+        if (usnap.exists()) {
+          const data = usnap.data();
+          nameField.value = data.displayName || currentUser.displayName || '';
+        } else {
+          nameField.value = currentUser.displayName || '';
+        }
+      } catch (e) { console.warn('Failed to read user profile', e); }
+
+      const saveBtn = document.getElementById('saveProfileBtn');
+      const status = document.getElementById('saveStatus');
+      saveBtn.onclick = async ()=>{
+        const newName = document.getElementById('displayNameInput').value.trim();
+        if (!newName) { alert('Please enter a display name'); return; }
+        saveBtn.disabled = true; status.style.display='inline'; status.textContent='Saving…';
+        try {
+          // Update Firebase Auth profile (displayName)
+          await window.firebaseUpdateProfile(currentUser, { displayName: newName });
+          // Save to Firestore
+          const uref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid);
+          await window.firebaseSetDoc(uref, {
+            displayName: newName,
+            email: currentUser.email || '',
+            photoURL: currentUser.photoURL || '',
+            lastUpdated: window.firebaseServerTimestamp()
+          }, { merge: true });
+          // Reflect in UI
+          document.getElementById('profileName').textContent = newName;
+          status.textContent = '✅ Saved successfully';
+          setTimeout(()=>{ status.style.display='none'; }, 2000);
+        } catch (e) {
+          console.error('Save failed', e);
+          status.textContent = '❌ Save failed';
+          setTimeout(()=>{ status.style.display='none'; }, 2500);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      };
     }
 
     // DOM ready
@@ -794,11 +893,10 @@ Just replace your file with this one.
       // Review submit
       const rf = document.getElementById('reviewForm'); if (rf){ rf.addEventListener('submit', submitReview); }
 
-      // If direct link ?page=my-reviews
+      // If direct link ?page=...
       const params=new URLSearchParams(window.location.search);
       const p=params.get('page'); if(p) showPage(p);
     });
   </script>
 </body>
 </html>
-```
