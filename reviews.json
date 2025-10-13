@@ -1,0 +1,71 @@
+{
+  "review_1": {
+    "influencerId": "influencer_1",
+    "serviceId": "service_1",
+    "userId": "user_sample_1",
+    "userName": "Sarah Martinez",
+    "userAvatar": "SM",
+    "rating": 5,
+    "title": "Life-Changing Program!",
+    "text": "This bootcamp completely changed my life! I was skeptical at first, but Jake's approach is so practical and sustainable. The daily workouts are challenging but doable, and the nutrition guide actually makes sense. I lost 20 pounds and gained so much confidence. Worth every penny!",
+    "helpful": 42,
+    "verified": true,
+    "timestamp": "2024-03-20T14:30:00Z"
+  },
+
+  "review_2": {
+    "influencerId": "influencer_2",
+    "serviceId": "service_4",
+    "userId": "user_sample_2",
+    "userName": "Michael Roberts",
+    "userAvatar": "MR",
+    "rating": 5,
+    "title": "Got hired at Google!",
+    "text": "Alex's bootcamp is incredible. The curriculum is up-to-date and practical. I went from knowing basic HTML to landing a job at Google in 6 months. The projects you build are portfolio-worthy and the interview prep section is gold.",
+    "helpful": 89,
+    "verified": true,
+    "timestamp": "2024-03-18T10:15:00Z"
+  },
+
+  "review_3": {
+    "influencerId": "influencer_3",
+    "serviceId": "service_7",
+    "userId": "user_sample_3",
+    "userName": "Tom Davidson",
+    "userAvatar": "TD",
+    "rating": 3,
+    "title": "Overpriced for the content",
+    "text": "The course has some good information but it's mostly stuff you can find free on YouTube. Sarah doesn't respond to questions in the community and the 'no money down' strategies require good credit which wasn't mentioned upfront.",
+    "helpful": 67,
+    "verified": true,
+    "timestamp": "2024-03-15T16:45:00Z"
+  },
+
+  "review_4": {
+    "influencerId": "influencer_1",
+    "serviceId": "service_2",
+    "userId": "user_sample_4",
+    "userName": "Jessica Lee",
+    "userAvatar": "JL",
+    "rating": 4,
+    "title": "Great coaching but pricey",
+    "text": "Jake is knowledgeable and supportive. The weekly calls are helpful and he really does customize everything to your needs. My only complaint is the price - it's a bit steep compared to other coaches. But if you can afford it, the quality is there.",
+    "helpful": 28,
+    "verified": true,
+    "timestamp": "2024-03-12T09:20:00Z"
+  },
+
+  "review_5": {
+    "influencerId": "influencer_5",
+    "serviceId": "service_12",
+    "userId": "user_sample_5",
+    "userName": "Robert Kim",
+    "userAvatar": "RK",
+    "rating": 2,
+    "title": "Misleading marketing",
+    "text": "The course promises easy profits but doesn't emphasize enough that 90% of day traders lose money. Lost $5k following the strategies. The risk management section is too brief for beginners. Would not recommend unless you have money to lose.",
+    "helpful": 124,
+    "verified": true,
+    "timestamp": "2024-03-10T11:30:00Z"
+  }
+}

@@ -1,0 +1,425 @@
+{
+  "influencer_1": {
+    "name": "Jake Davis",
+    "niche": "Fitness Coach",
+    "avatar": "JD",
+    "verified": true,
+    "trustScore": 94,
+    "bio": "Certified personal trainer with 10+ years experience. Former athlete turned online fitness coach helping thousands transform their bodies and minds.",
+    "location": "Los Angeles, CA",
+    "socialPlatforms": {
+      "instagram": 850000,
+      "youtube": 320000,
+      "tiktok": 1200000
+    },
+    "stats": {
+      "rating": 4.8,
+      "reviewCount": 1247,
+      "recommendPercent": 94,
+      "totalStudents": 12847,
+      "responseTime": "< 2 hours"
+    },
+    "services": [
+      {
+        "id": "service_1",
+        "title": "30-Day Transformation Bootcamp",
+        "price": 297,
+        "type": "bootcamp"
+      },
+      {
+        "id": "service_2",
+        "title": "1-on-1 Personal Coaching",
+        "price": 150,
+        "priceUnit": "month",
+        "type": "coaching"
+      },
+      {
+        "id": "service_3",
+        "title": "Nutrition Mastery Guide",
+        "price": 47,
+        "type": "ebook"
+      }
+    ],
+    "tags": ["weight-loss", "muscle-gain", "nutrition", "mindset"],
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+
+  "influencer_2": {
+    "name": "Alex Kumar",
+    "niche": "Web Developer",
+    "avatar": "AK",
+    "verified": true,
+    "trustScore": 97,
+    "bio": "Full-stack developer at FAANG. Teaching practical coding skills that land real jobs. 500+ students hired at top tech companies.",
+    "location": "San Francisco, CA",
+    "socialPlatforms": {
+      "youtube": 850000,
+      "twitter": 125000,
+      "linkedin": 45000
+    },
+    "stats": {
+      "rating": 4.9,
+      "reviewCount": 2456,
+      "recommendPercent": 97,
+      "totalStudents": 8500,
+      "responseTime": "< 24 hours"
+    },
+    "services": [
+      {
+        "id": "service_4",
+        "title": "Full-Stack Web Development Bootcamp",
+        "price": 497,
+        "type": "course"
+      },
+      {
+        "id": "service_5",
+        "title": "React Mastery Course",
+        "price": 197,
+        "type": "course"
+      },
+      {
+        "id": "service_6",
+        "title": "Interview Prep Coaching",
+        "price": 250,
+        "priceUnit": "session",
+        "type": "coaching"
+      }
+    ],
+    "tags": ["javascript", "react", "node.js", "career", "interview-prep"],
+    "createdAt": "2023-11-20T10:00:00Z"
+  },
+
+  "influencer_3": {
+    "name": "Sarah Mitchell",
+    "niche": "Real Estate Investing",
+    "avatar": "SM",
+    "verified": false,
+    "trustScore": 58,
+    "bio": "Real estate wholesaler and investor. Flipped 50+ properties. Teaching beginners how to start in real estate with no money down.",
+    "location": "Phoenix, AZ",
+    "socialPlatforms": {
+      "instagram": 450000,
+      "facebook": 125000
+    },
+    "stats": {
+      "rating": 3.2,
+      "reviewCount": 432,
+      "recommendPercent": 58,
+      "totalStudents": 3200,
+      "responseTime": "< 48 hours"
+    },
+    "services": [
+      {
+        "id": "service_7",
+        "title": "Wholesaling Masterclass",
+        "price": 997,
+        "type": "course"
+      },
+      {
+        "id": "service_8",
+        "title": "Virtual Wholesaling Blueprint",
+        "price": 497,
+        "type": "course"
+      }
+    ],
+    "tags": ["real-estate", "wholesaling", "investing", "passive-income"],
+    "createdAt": "2024-02-01T10:00:00Z"
+  },
+
+  "influencer_4": {
+    "name": "Maria Rodriguez",
+    "niche": "Digital Marketing",
+    "avatar": "MR",
+    "verified": true,
+    "trustScore": 88,
+    "bio": "Former Facebook ads manager now teaching small businesses how to scale with paid advertising. $10M+ in ad spend managed.",
+    "location": "Miami, FL",
+    "socialPlatforms": {
+      "instagram": 320000,
+      "youtube": 180000,
+      "linkedin": 65000
+    },
+    "stats": {
+      "rating": 4.6,
+      "reviewCount": 892,
+      "recommendPercent": 89,
+      "totalStudents": 5600,
+      "responseTime": "< 12 hours"
+    },
+    "services": [
+      {
+        "id": "service_9",
+        "title": "Facebook Ads Mastery",
+        "price": 397,
+        "type": "course"
+      },
+      {
+        "id": "service_10",
+        "title": "Marketing Agency Blueprint",
+        "price": 797,
+        "type": "course"
+      },
+      {
+        "id": "service_11",
+        "title": "1-on-1 Ad Campaign Audit",
+        "price": 500,
+        "priceUnit": "session",
+        "type": "consulting"
+      }
+    ],
+    "tags": ["facebook-ads", "instagram-ads", "digital-marketing", "agency"],
+    "createdAt": "2023-09-15T10:00:00Z"
+  },
+
+  "influencer_5": {
+    "name": "David Chen",
+    "niche": "Day Trading",
+    "avatar": "DC",
+    "verified": true,
+    "trustScore": 72,
+    "bio": "Professional day trader with 8 years experience. Teaching risk management and technical analysis for consistent profits.",
+    "location": "New York, NY",
+    "socialPlatforms": {
+      "youtube": 520000,
+      "twitter": 89000,
+      "discord": 15000
+    },
+    "stats": {
+      "rating": 3.9,
+      "reviewCount": 1823,
+      "recommendPercent": 71,
+      "totalStudents": 9200,
+      "responseTime": "< 6 hours"
+    },
+    "services": [
+      {
+        "id": "service_12",
+        "title": "Day Trading Fundamentals",
+        "price": 297,
+        "type": "course"
+      },
+      {
+        "id": "service_13",
+        "title": "VIP Trading Signals",
+        "price": 99,
+        "priceUnit": "month",
+        "type": "subscription"
+      },
+      {
+        "id": "service_14",
+        "title": "Private Mentorship",
+        "price": 2500,
+        "priceUnit": "month",
+        "type": "mentorship"
+      }
+    ],
+    "tags": ["trading", "stocks", "forex", "crypto", "technical-analysis"],
+    "createdAt": "2023-07-22T10:00:00Z"
+  },
+
+  "influencer_6": {
+    "name": "Emma Thompson",
+    "niche": "Beauty & Skincare",
+    "avatar": "ET",
+    "verified": true,
+    "trustScore": 91,
+    "bio": "Licensed esthetician and beauty educator. Helping women achieve glowing skin through science-backed skincare routines.",
+    "location": "Austin, TX",
+    "socialPlatforms": {
+      "instagram": 670000,
+      "tiktok": 890000,
+      "youtube": 234000
+    },
+    "stats": {
+      "rating": 4.7,
+      "reviewCount": 567,
+      "recommendPercent": 92,
+      "totalStudents": 4300,
+      "responseTime": "< 24 hours"
+    },
+    "services": [
+      {
+        "id": "service_15",
+        "title": "30-Day Skin Transformation",
+        "price": 197,
+        "type": "course"
+      },
+      {
+        "id": "service_16",
+        "title": "Custom Skincare Consultation",
+        "price": 150,
+        "priceUnit": "session",
+        "type": "consultation"
+      }
+    ],
+    "tags": ["skincare", "beauty", "anti-aging", "acne", "self-care"],
+    "createdAt": "2024-01-05T10:00:00Z"
+  },
+
+  "influencer_7": {
+    "name": "Ryan O'Brien",
+    "niche": "E-commerce & Dropshipping",
+    "avatar": "RO",
+    "verified": false,
+    "trustScore": 45,
+    "bio": "7-figure dropshipping entrepreneur. Teaching the exact blueprint I used to quit my 9-5 and build multiple successful stores.",
+    "location": "Las Vegas, NV",
+    "socialPlatforms": {
+      "youtube": 290000,
+      "instagram": 180000
+    },
+    "stats": {
+      "rating": 2.8,
+      "reviewCount": 721,
+      "recommendPercent": 42,
+      "totalStudents": 6700,
+      "responseTime": "> 72 hours"
+    },
+    "services": [
+      {
+        "id": "service_17",
+        "title": "Dropshipping Accelerator",
+        "price": 1997,
+        "type": "course"
+      },
+      {
+        "id": "service_18",
+        "title": "Product Research Tool",
+        "price": 47,
+        "priceUnit": "month",
+        "type": "software"
+      }
+    ],
+    "tags": ["dropshipping", "shopify", "ecommerce", "entrepreneurship"],
+    "createdAt": "2023-12-10T10:00:00Z"
+  },
+
+  "influencer_8": {
+    "name": "Lisa Zhang",
+    "niche": "Life Coaching",
+    "avatar": "LZ",
+    "verified": true,
+    "trustScore": 85,
+    "bio": "Certified life coach and mindfulness teacher. Helping high achievers find balance and purpose through proven coaching techniques.",
+    "location": "Seattle, WA",
+    "socialPlatforms": {
+      "instagram": 125000,
+      "linkedin": 45000,
+      "podcast": 25000
+    },
+    "stats": {
+      "rating": 4.5,
+      "reviewCount": 234,
+      "recommendPercent": 86,
+      "totalStudents": 890,
+      "responseTime": "< 12 hours"
+    },
+    "services": [
+      {
+        "id": "service_19",
+        "title": "12-Week Life Transformation",
+        "price": 597,
+        "type": "program"
+      },
+      {
+        "id": "service_20",
+        "title": "Executive Coaching",
+        "price": 350,
+        "priceUnit": "session",
+        "type": "coaching"
+      }
+    ],
+    "tags": ["mindfulness", "productivity", "work-life-balance", "leadership"],
+    "createdAt": "2023-10-18T10:00:00Z"
+  },
+
+  "influencer_9": {
+    "name": "Marcus Williams",
+    "niche": "Cryptocurrency",
+    "avatar": "MW",
+    "verified": true,
+    "trustScore": 76,
+    "bio": "Crypto analyst and DeFi expert. Navigating the crypto markets since 2016. Teaching safe investing strategies in digital assets.",
+    "location": "Dubai, UAE",
+    "socialPlatforms": {
+      "twitter": 410000,
+      "youtube": 295000,
+      "telegram": 85000
+    },
+    "stats": {
+      "rating": 4.1,
+      "reviewCount": 1456,
+      "recommendPercent": 78,
+      "totalStudents": 11200,
+      "responseTime": "< 6 hours"
+    },
+    "services": [
+      {
+        "id": "service_21",
+        "title": "Crypto Fundamentals Course",
+        "price": 197,
+        "type": "course"
+      },
+      {
+        "id": "service_22",
+        "title": "DeFi Mastery Program",
+        "price": 497,
+        "type": "course"
+      },
+      {
+        "id": "service_23",
+        "title": "VIP Trading Group",
+        "price": 149,
+        "priceUnit": "month",
+        "type": "membership"
+      }
+    ],
+    "tags": ["bitcoin", "ethereum", "defi", "nft", "blockchain"],
+    "createdAt": "2023-08-30T10:00:00Z"
+  },
+
+  "influencer_10": {
+    "name": "Jennifer Park",
+    "niche": "Content Creation",
+    "avatar": "JP",
+    "verified": true,
+    "trustScore": 93,
+    "bio": "YouTube strategist who grew from 0 to 1M subscribers in 18 months. Teaching creators how to grow and monetize their channels.",
+    "location": "Toronto, Canada",
+    "socialPlatforms": {
+      "youtube": 1100000,
+      "instagram": 450000,
+      "tiktok": 670000
+    },
+    "stats": {
+      "rating": 4.8,
+      "reviewCount": 892,
+      "recommendPercent": 95,
+      "totalStudents": 3400,
+      "responseTime": "< 24 hours"
+    },
+    "services": [
+      {
+        "id": "service_24",
+        "title": "YouTube Growth Academy",
+        "price": 397,
+        "type": "course"
+      },
+      {
+        "id": "service_25",
+        "title": "Channel Optimization Audit",
+        "price": 297,
+        "type": "service"
+      },
+      {
+        "id": "service_26",
+        "title": "Creator Mastermind",
+        "price": 197,
+        "priceUnit": "month",
+        "type": "community"
+      }
+    ],
+    "tags": ["youtube", "content-strategy", "video-editing", "monetization"],
+    "createdAt": "2024-01-28T10:00:00Z"
+  }
+}
