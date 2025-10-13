@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main  # deploy automatically on push to main
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+  workflow_dispatch:  # allow manual trigger from GitHub UI
 
 jobs:
   build_and_deploy:
@@ -22,9 +22,7 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Build (optional)
-        run: |
-          echo "Nothing to build — deploying static files"
-
       - name: Deploy to Firebase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: firebase deploy --only hosting --token "$FIREBASE_TOKEN"
