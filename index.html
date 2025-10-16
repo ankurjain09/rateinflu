@@ -189,6 +189,16 @@
     /* Pages */
     .page-section{display:none}.page-section.active{display:block}
 
+    
+    /* Social icons row */
+    .social-icons-row{display:flex;gap:.5rem;margin-top:.35rem}
+    .social-icons-row .social-icon{display:inline-flex;align-items:center;color:var(--gray);opacity:.9;transition:.2s}
+    .social-icons-row .social-icon:hover{color:var(--primary);opacity:1;transform:translateY(-1px)}
+    .card-title-row{display:flex;justify-content:space-between;align-items:center;gap:.75rem}
+    .fav-star{background:transparent;border:none;cursor:pointer;font-size:20px;line-height:1;color:#9ca3af;transition:.15s}
+    .fav-star.active{color:var(--warning)}
+    .fav-star:hover{transform:scale(1.08)}
+
     /* Avatar dropdown */
     .user-info{display:flex;align-items:center;gap:.75rem;position:relative}
     .user-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;border:2px solid var(--light)}
@@ -271,19 +281,7 @@
       <div id="myReviewsList">
         <div class="loading-container"><div class="spinner"></div></div>
       </div>
-    
-    <!-- Favorites Page -->
-    <div id="favoritesPage" class="page-section">
-      <h1 style="margin-bottom:1rem;">Favorites</h1>
-      <div id="favoritesAuth" class="auth-prompt" style="display:none">
-        Please sign in to view your favorites.
-        <div style="margin-top:.6rem"><button class="auth-button" onclick="openAuthModal()">Sign in</button></div>
-      </div>
-      <div id="favoritesList">
-        <div class="loading-container"><div class="spinner"></div></div>
-      </div>
     </div>
-</div>
 
     <!-- Profile Settings Page -->
     <div id="profile-settingsPage" class="page-section">
@@ -533,6 +531,32 @@
       }catch(e){ console.error(e); displayError(); }
     }
 
+    
+    // --- Inline Outlined SVG icons ---
+    function iconSVG(name){
+      const common = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+      const map = {
+        facebook: `<svg ${common}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,
+        instagram:`<svg ${common}><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1"/></svg>`,
+        linkedin: `<svg ${common}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V9h4v2"/><rect x="2" y="9" width="4" height="14"/><circle cx="4" cy="4" r="2"/></svg>`,
+        tiktok:   `<svg ${common}><path d="M15 3c1 2 3 3 5 3v4c-2 0-4-1-5-2v6a6 6 0 1 1-6-6h1v4h-1a2 2 0 1 0 2 2V3z"/></svg>`,
+        youtube:  `<svg ${common}><path d="M22.54 6.42A2.78 2.78 0 0 0 20.6 4.5C18.88 4 12 4 12 4s-6.88 0-8.6.5A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.4 19.5C5.12 20 12 20 12 20s6.88 0 8.6-.5a2.78 2.78 0 0 0 1.94-1.92A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="10 15 15 12 10 9 10 15"/></svg>`,
+        twitter:  `<svg ${common}><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 8v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83"/></svg>`,
+        website:  `<svg ${common}><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M12 3a15.3 15.3 0 0 1 0 18"/><path d="M12 3a15.3 15.3 0 0 0 0 18"/></svg>`
+      };
+      return map[name] || map['website'];
+    }
+    function renderSocialIconsRow(socialLinks){
+      if(!socialLinks) return '';
+      const order = ['instagram','tiktok','youtube','facebook','linkedin','twitter','website'];
+      const items = order.filter(k=>socialLinks[k]).map(k=>{
+        const url = socialLinks[k];
+        return `<a class="social-icon" href="${url}" target="_blank" rel="noopener noreferrer" title="${k}">${iconSVG(k)}</a>`;
+      });
+      if(!items.length) return '';
+      return `<div class="social-icons-row">${items.join('')}</div>`;
+    }
+
     // Grid render
     function displayInfluencers(influencers){
       const grid = document.getElementById('influencerGrid');
@@ -540,6 +564,7 @@
         grid.innerHTML = `<div class="empty-state"><h3>No influencers found</h3><p>Try adjusting your search or filters</p></div>`;
         return;
       }
+      const openBtn=document.getElementById('openAuthModalBtn'); if(openBtn){openBtn.onclick=()=>openAuthModal();}
       grid.innerHTML = influencers.map(createInfluencerCard).join('');
     }
 
@@ -593,22 +618,7 @@
 
       document.getElementById('modalAvatar').textContent = influencer.avatar || influencer.name?.substring(0,2).toUpperCase() || 'IN';
       document.getElementById('modalName').textContent = influencer.name || 'Unknown Influencer';
-      // Profile favorite star in header
-      (async()=>{
-        let pf = document.getElementById('profileFavBtn');
-        if(!pf){
-          pf = document.createElement('button');
-          pf.id = 'profileFavBtn';
-          pf.className = 'profile-fav';
-          pf.textContent = '☆';
-          pf.onclick = ()=>toggleFavorite(influencerId, pf);
-          document.querySelector('#profileModal .modal-header').appendChild(pf);
-        }
-        const isFav = await isFavorited(influencerId);
-        pf.textContent = isFav ? '⭐' : '☆';
-        pf.classList.toggle('active', !!isFav);
-      })();
-
+      (async()=>{let pf=document.getElementById('profileFavBtn'); if(!pf){pf=document.createElement('button'); pf.id='profileFavBtn'; pf.className='profile-fav'; pf.textContent='☆'; pf.onclick=()=>toggleFavorite(influencerId,pf); document.querySelector('#profileModal .modal-header').appendChild(pf);} const fav=await isFavorited(influencerId); pf.textContent=fav?'⭐':'☆'; pf.classList.toggle('active',!!fav);})();
       const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
       document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?' • Verified ✓':''}`;
       document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
@@ -745,6 +755,7 @@
         list.innerHTML='';
         return;
       }
+      const openBtn=document.getElementById('openAuthModalBtn'); if(openBtn){openBtn.onclick=()=>openAuthModal();}
       authGate.style.display='none';
       list.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
 
@@ -828,6 +839,7 @@
       if(!currentUser){
         gate.style.display='block'; card.style.display='none'; return;
       }
+      const openBtn=document.getElementById('openAuthModalBtn'); if(openBtn){openBtn.onclick=()=>openAuthModal();}
       gate.style.display='none'; card.style.display='block';
 
       const initial = currentUser.displayName?.charAt(0)?.toUpperCase() || 'U';
@@ -868,7 +880,7 @@
           }, { merge: true });
           // Reflect in UI
           document.getElementById('profileName').textContent = newName;
-          status.textContent = '✅ Favorites successfully';
+          status.textContent = '✅ Saved successfully';
           setTimeout(()=>{ status.style.display='none'; }, 2000);
         } catch (e) {
           console.error('Save failed', e);
@@ -924,279 +936,8 @@
 
       // If direct link ?page=...
       const params=new URLSearchParams(window.location.search);
-      const p=params.get('page'); if(p) showPage(p);
+      const p=params.get('page'); if(p) showPage(p); const inf=params.get('inf'); if(inf){ if(!influencersData.length){ await loadInfluencers(); } viewInfluencerProfile(inf);}
     });
   </script>
-
-  <!-- Auth Modal (popup with Sign In / Sign Up + Google) -->
-  <div class="modal-overlay" id="authModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;max-width:440px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
-      <button onclick="closeAuthModal()" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
-      <h2 style="margin:.25rem 0 1rem">Welcome</h2>
-      <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
-        <button id="tabSignIn" style="flex:1;padding:.6rem;border-radius:8px;border:2px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer">Sign In</button>
-        <button id="tabSignUp" style="flex:1;padding:.6rem;border-radius:8px;border:2px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer">Sign Up</button>
-      </div>
-      <form id="emailAuthForm" data-mode="signin">
-        <input id="authEmail" type="email" placeholder="Email" required style="width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
-        <input id="authPassword" type="password" placeholder="Password" required style="width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
-        <input id="authPassword2" type="password" placeholder="Confirm Password" style="display:none;width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
-        <button class="btn-primary" id="emailAuthBtn" type="submit" style="width:100%;padding:.8rem;border:none;border-radius:10px;">Sign In</button>
-      </form>
-      <div style="display:flex;align-items:center;gap:.75rem;margin:.9rem 0">
-        <div style="flex:1;height:1px;background:#e5e7eb"></div><span style="color:#64748b;font-size:.9rem">OR</span><div style="flex:1;height:1px;background:#e5e7eb"></div>
-      </div>
-      <button id="googleAuthBtn" class="auth-button" style="width:100%;justify-content:center;padding:.8rem;border:2px solid #e5e7eb;background:#fff;border-radius:10px;">Continue with Google</button>
-      <div style="margin-top:.6rem;display:flex;justify-content:space-between;align-items:center;">
-        <a id="forgotPass" href="#" style="color:#4f46e5;text-decoration:underline;font-size:.92rem">Forgot Password?</a>
-        <span id="authToggleText" style="color:#64748b;font-size:.92rem;cursor:pointer">Don’t have an account? <a id="toSignUp" href="#" style="color:#4f46e5;text-decoration:underline">Sign Up</a></span>
-      </div>
-      <p id="authStatus" style="margin-top:.6rem;color:#64748b"></p>
-    </div>
-  </div>
-
-  <!-- Submit Influencer Modal (formal) -->
-  <div class="modal-overlay" id="submitInfluencerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;max-width:640px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
-      <button onclick="document.getElementById('submitInfluencerModal').style.display='none'" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
-      <h2 style="margin:.25rem 0 1rem">Submit Influencer for Review</h2>
-      <form id="submitInfluencerForm">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-          <label style="grid-column:1/-1;font-weight:600">Full Name</label>
-          <input id="si_name" required style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
-          <label style="font-weight:600">Niche</label>
-          <input id="si_niche" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
-          <label style="font-weight:600">Primary Social URL</label>
-          <input id="si_social" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
-          <label style="grid-column:1/-1;font-weight:600">Short Bio</label>
-          <textarea id="si_bio" required style="grid-column:1/-1;height:100px;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"></textarea>
-        </div>
-        <button class="btn-primary" type="submit" style="margin-top:1rem;padding:.8rem 1.2rem;border:none;border-radius:10px;">Submit for Review</button>
-      </form>
-      <p id="submitInfluencerStatus" style="margin-top:.6rem;color:#64748b"></p>
-    </div>
-  </div>
-
-  <!-- Admin Panel Modal -->
-  <div class="modal-overlay" id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;max-width:840px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
-      <button onclick="document.getElementById('adminPanelModal').style.display='none'" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
-      <h2 style="margin:.25rem 0 1rem">Admin – Pending Influencers</h2>
-      <div id="adminPendingList"><div class="loading-container"><div class="spinner"></div></div></div>
-    </div>
-  </div>
-
-  <style>
-    /* Favorites star on card */
-    .fav-star{position:absolute;top:10px;right:10px;background:transparent;border:none;cursor:pointer;font-size:20px;line-height:1;opacity:0;transition:.2s;color:#9ca3af}
-    .card:hover .fav-star{opacity:1;transform:scale(1.05)}
-    .fav-star.active{color:var(--warning);opacity:1}
-    /* Profile modal favorite button */
-    .profile-fav{margin-left:auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:.35rem .6rem;cursor:pointer}
-    .profile-fav.active{border-color:#f59e0b;color:#f59e0b}
-  </style>
-
-  <script type="module">
-    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-    import { getDoc, setDoc, doc, getDocs, collection, serverTimestamp, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-    const auth = window.firebaseAuth;
-    const db = window.firebaseDB;
-
-    // Auth modal control
-    window.openAuthModal = function(){ document.getElementById('authModal').style.display='flex'; setAuthMode('signin'); };
-    window.closeAuthModal = function(){ document.getElementById('authModal').style.display='none'; };
-
-    // Tabs
-    function setAuthMode(mode){
-      const pass2 = document.getElementById('authPassword2');
-      const btn = document.getElementById('emailAuthBtn');
-      document.getElementById('emailAuthForm').dataset.mode = mode;
-      pass2.style.display = mode==='signup' ? 'block' : 'none';
-      btn.textContent = mode==='signup' ? 'Create Account' : 'Sign In';
-      document.getElementById('tabSignIn').style.borderColor = mode==='signin' ? '#4f46e5' : '#e5e7eb';
-      document.getElementById('tabSignUp').style.borderColor = mode==='signup' ? '#4f46e5' : '#e5e7eb';
-      document.getElementById('authStatus').textContent='';
-    }
-    document.getElementById('tabSignIn').onclick = ()=>setAuthMode('signin');
-    document.getElementById('tabSignUp').onclick = ()=>setAuthMode('signup');
-    document.getElementById('toSignUp').onclick = (e)=>{ e.preventDefault(); setAuthMode('signup'); };
-
-    // Email auth submit
-    document.getElementById('emailAuthForm').onsubmit = async (e)=>{
-      e.preventDefault();
-      const email = (document.getElementById('authEmail').value||'').trim();
-      const pass = (document.getElementById('authPassword').value||'');
-      const pass2 = (document.getElementById('authPassword2').value||'');
-      const mode = e.currentTarget.dataset.mode;
-      const status = document.getElementById('authStatus');
-      status.textContent = 'Processing…';
-      try{
-        if (mode==='signup'){
-          if (pass !== pass2){ status.textContent='Passwords do not match.'; return; }
-          const cred = await createUserWithEmailAndPassword(auth, email, pass);
-          await setDoc(doc(db,'users', cred.user.uid), { email, role:'user', joinedAt: serverTimestamp(), lastLoginAt: serverTimestamp() }, { merge:true });
-          status.textContent = '✅ Account created';
-          setTimeout(()=>{ closeAuthModal(); }, 400);
-        } else {
-          const cred = await signInWithEmailAndPassword(auth, email, pass);
-          await setDoc(doc(db,'users', cred.user.uid), { lastLoginAt: serverTimestamp() }, { merge:true });
-          status.textContent = '✅ Signed in';
-          setTimeout(()=>{ closeAuthModal(); }, 400);
-        }
-      }catch(err){
-        console.error(err);
-        status.textContent = '❌ '+(err.message||'Authentication failed');
-      }
-    };
-    document.getElementById('forgotPass').onclick = async (e)=>{
-      e.preventDefault();
-      const email = (document.getElementById('authEmail').value||'').trim();
-      if (!email) return alert('Enter your email first.');
-      try{ await sendPasswordResetEmail(auth, email); alert('Password reset link sent.'); }catch(err){ alert(err.message||'Failed to send link'); }
-    };
-
-    // Google auth
-    document.getElementById('googleAuthBtn').onclick = ()=>{ window.firebaseSignInWithPopup(auth, window.googleProvider).catch(e=>alert('Sign-in failed')); };
-
-    // Favorites helpers
-    async function isFavorited(id){
-      const user = auth.currentUser; if(!user) return false;
-      const snap = await getDoc(doc(db,'users', user.uid, 'favorites', id));
-      return snap.exists();
-    }
-    window.isFavorited = isFavorited;
-
-    async function toggleFavorite(id, el){
-      const user = auth.currentUser; if(!user){ openAuthModal(); return; }
-      const ref = doc(db,'users', user.uid, 'favorites', id);
-      const snap = await getDoc(ref);
-      if (snap.exists()){
-        await deleteDoc(ref);
-        if (el){ el.textContent='☆'; el.classList.remove('active'); }
-      } else {
-        await setDoc(ref, { favoritedAt: serverTimestamp() });
-        if (el){ el.textContent='⭐'; el.classList.add('active'); }
-      }
-    }
-    window.toggleFavorite = toggleFavorite;
-
-    // Favorites page
-    window.openFavorites = async function(){
-      const u = auth.currentUser;
-      if(!u){ document.getElementById('favoritesAuth').style.display='block'; return showPage('favorites'); }
-      const snap = await getDocs(collection(db,'users', u.uid, 'favorites'));
-      const list = document.getElementById('favoritesList');
-      if (snap.empty){ list.innerHTML = '<p style="color:#64748b">No favorites yet.</p>'; showPage('favorites'); return; }
-      const cards = [];
-      for (const d of snap.docs){
-        const id = d.id;
-        const infSnap = await getDoc(doc(db,'influencers', id));
-        if (!infSnap.exists()) continue;
-        const inf = infSnap.data();
-        const name = inf.name || 'Influencer';
-        const avatar = (inf.avatar || name.substring(0,2).toUpperCase());
-        const bio = inf.bio || '';
-        cards.push(`
-          <div class="card" style="position:relative">
-            <div class="avatar">${avatar}</div>
-            <div class="card-title">${name}</div>
-            <div class="card-subtitle">${bio}</div>
-            <div class="card-action" onclick="viewInfluencerProfile('${id}')">View Full Profile <span class="arrow-icon">→</span></div>
-            <button class="fav-star active" onclick="toggleFavorite('${id}', this)" title="Remove from favorites">⭐</button>
-          </div>
-        `);
-      }
-      list.innerHTML = cards.join('');
-      showPage('favorites');
-    };
-
-    // Submit Influencer entry in nav (formal)
-    (function addSubmitBtn(){
-      const nav = document.querySelector('.nav-links');
-      if (!nav || document.getElementById('submitInfluencerBtn')) return;
-      const btn = document.createElement('button');
-      btn.id = 'submitInfluencerBtn';
-      btn.className = 'auth-button';
-      btn.textContent = 'Submit Influencer';
-      btn.onclick = ()=> window.openSubmitInfluencer();
-      nav.appendChild(btn);
-    })();
-
-    // Admin in dropdown & Favorites entry
-    const menuObserver = new MutationObserver(async ()=>{
-      const menu = document.getElementById('userMenu');
-      if (!menu || menu.dataset.enhanced) return;
-      const favBtn = document.createElement('button');
-      favBtn.textContent = '⭐ Favorites';
-      favBtn.onclick = ()=>{ window.openFavorites(); closeMenu(); };
-      menu.insertBefore(favBtn, menu.firstChild?.nextSibling || null);
-      const u = auth.currentUser;
-      if (u){
-        const snap = await getDoc(doc(db,'users', u.uid));
-        const role = snap.exists()? (snap.data().role||'user') : 'user';
-        if (role==='admin'){
-          const hr = document.createElement('hr');
-          const ab = document.createElement('button');
-          ab.textContent = 'Admin Panel';
-          ab.onclick = ()=>{ window.openAdminPanel(); closeMenu(); };
-          menu.appendChild(hr); menu.appendChild(ab);
-        }
-      }
-      menu.dataset.enhanced='1';
-    });
-    menuObserver.observe(document.body,{childList:true,subtree:true});
-
-    // Submit Influencer handlers
-    window.openSubmitInfluencer = function(){
-      const user = auth.currentUser;
-      if(!user){ openAuthModal(); return; }
-      document.getElementById('submitInfluencerModal').style.display='flex';
-    };
-
-    // Admin panel functions
-    window.openAdminPanel = async function(){
-      const u = auth.currentUser; if(!u){ openAuthModal(); return; }
-      const ud = await getDoc(doc(db,'users',u.uid));
-      if (!ud.exists() || (ud.data().role!=='admin')){ alert('You do not have permission.'); return; }
-      document.getElementById('adminPanelModal').style.display='flex';
-      // Load pending
-      const list = document.getElementById('adminPendingList');
-      list.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
-      const snap = await getDocs(collection(db,'pendingInfluencers'));
-      if (snap.empty){ list.innerHTML='<p style="color:#64748b">No pending submissions.</p>'; return; }
-      const items = [];
-      for (const d of snap.docs){
-        const v = d.data();
-        items.push(`
-          <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin:.5rem 0;display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center">
-            <div><div style="font-weight:800">${v.name||''}</div><div style="color:#64748b">${v.niche||''} • ${v.mainSocial||''}</div><div style="color:#64748b;margin-top:.25rem">${v.bio||''}</div></div>
-            <div style="display:flex;gap:.5rem">
-              <button data-id="${d.id}" class="btn-approve" style="padding:.5rem .8rem;border:none;border-radius:8px;background:#10b981;color:#fff">Approve</button>
-              <button data-id="${d.id}" class="btn-reject"  style="padding:.5rem .8rem;border:1px solid #e5e7eb;border-radius:10px;background:#fff">Reject</button>
-            </div>
-          </div>
-        `);
-      }
-      list.innerHTML = items.join('');
-      list.querySelectorAll('.btn-approve').forEach(btn=>btn.onclick = async (e)=>{
-        const id = e.currentTarget.dataset.id;
-        const ref = doc(db,'pendingInfluencers', id);
-        const snap = await getDoc(ref);
-        if(snap.exists()){
-          const data = snap.data();
-          await setDoc(doc(db,'influencers', id), { ...data, verified:true, approved:true, createdAt: serverTimestamp() }, { merge:true });
-          await deleteDoc(ref);
-          window.openAdminPanel();
-        }
-      });
-      list.querySelectorAll('.btn-reject').forEach(btn=>btn.onclick = async (e)=>{
-        const id = e.currentTarget.dataset.id;
-        await deleteDoc(doc(db,'pendingInfluencers', id));
-        window.openAdminPanel();
-      });
-    };
-  </script>
-
 </body>
 </html>
