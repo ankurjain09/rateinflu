@@ -936,7 +936,19 @@
 
       // If direct link ?page=...
       const params=new URLSearchParams(window.location.search);
-      const p=params.get('page'); if(p) showPage(p); const inf=params.get('inf'); if(inf){ if(!influencersData.length){ await loadInfluencers(); } viewInfluencerProfile(inf);}
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get('page');
+        if (p) showPage(p);
+        
+        (async () => {
+          const inf = params.get('inf');
+          if (inf) {
+            if (!influencersData.length) {
+              await loadInfluencers();
+            }
+            viewInfluencerProfile(inf);
+          }
+        })();
     });
   </script>
 </body>
