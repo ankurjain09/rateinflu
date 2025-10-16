@@ -263,19 +263,19 @@
     function renderSignedIn(user){
       const el=document.getElementById('authContainer');
       const name = (user.displayName||user.email)||'User';
-      el.innerHTML = \`
+      el.innerHTML = `
         <div class="avatar-btn" id="avatarBtn">
-          <div class="avatar-img">\${(name||'U').slice(0,1).toUpperCase()}</div>
-          <span class="muted" style="font-size:.9rem">\${name}</span>
-        </div>\`;
+          <div class="avatar-img">${(name||'U').slice(0,1).toUpperCase()}</div>
+          <span class="muted" style="font-size:.9rem">${name}</span>
+        </div>`;
       const menu=document.getElementById('userMenu');
-      menu.innerHTML = \`
+      menu.innerHTML = `
         <button onclick="showPage('browse');closeMenu()">Browse</button>
         <button onclick="openFavorites();closeMenu()">⭐ Favorites</button>
         <button onclick="showPage('about');closeMenu()">About</button>
         <hr/>
         <button id="adminEntry" style="display:none" onclick="openAdmin();closeMenu()">Admin Panel</button>
-        <button onclick="signOut(auth)">Sign Out</button>\`;
+        <button onclick="signOut(auth)">Sign Out</button>`;
       const btn=document.getElementById('avatarBtn');
       btn.onclick=()=>{
         const r=btn.getBoundingClientRect(); const m=menu;
