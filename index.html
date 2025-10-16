@@ -263,19 +263,19 @@
     function renderSignedIn(user){
       const el=document.getElementById('authContainer');
       const name = (user.displayName||user.email)||'User';
-      el.innerHTML = `
+      el.innerHTML = \`
         <div class="avatar-btn" id="avatarBtn">
-          <div class="avatar-img">${(name||'U').slice(0,1).toUpperCase()}</div>
-          <span class="muted" style="font-size:.9rem">${name}</span>
-        </div>`;
+          <div class="avatar-img">\${(name||'U').slice(0,1).toUpperCase()}</div>
+          <span class="muted" style="font-size:.9rem">\${name}</span>
+        </div>\`;
       const menu=document.getElementById('userMenu');
-      menu.innerHTML = `
+      menu.innerHTML = \`
         <button onclick="showPage('browse');closeMenu()">Browse</button>
         <button onclick="openFavorites();closeMenu()">⭐ Favorites</button>
         <button onclick="showPage('about');closeMenu()">About</button>
         <hr/>
         <button id="adminEntry" style="display:none" onclick="openAdmin();closeMenu()">Admin Panel</button>
-        <button onclick="signOut(auth)">Sign Out</button>`;
+        <button onclick="signOut(auth)">Sign Out</button>\`;
       const btn=document.getElementById('avatarBtn');
       btn.onclick=()=>{
         const r=btn.getBoundingClientRect(); const m=menu;
@@ -522,5 +522,404 @@
     })();
 
   </script>
+
+<!-- ===== TrustReview Enhancements (non-intrusive, UI-preserving) ===== -->
+<style>
+/* Scoped styles for modals only (won't affect existing UI) */
+.tr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999}
+.tr-modal{background:#0f1218;border:1px solid #1d2431;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:860px;width:95%;padding:18px;color:#e5e7eb;font-family:inherit}
+.tr-close{position:absolute;right:10px;top:10px;border:none;background:#131a26;border-radius:8px;color:#b9c2d3;cursor:pointer;width:34px;height:34px}
+.tr-muted{color:#9ca3af}
+.tr-input, .tr-textarea{background:#0c1016;border:1px solid #1c2332;color:#e5e7eb;border-radius:10px;padding:.7rem;width:100%}
+.tr-label{color:#b6bfcd;font-size:.92rem;display:block;margin-top:.35rem}
+.tr-btn{background:#1a2132;border:1px solid #23314c;color:#cbd5e1;padding:.55rem .9rem;border-radius:10px;cursor:pointer}
+.tr-btn-primary{background:linear-gradient(135deg,#6366f1,#22d3ee);border:none;color:white;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.tr-row{display:flex;gap:.5rem;align-items:center}
+.tr-col2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.tr-line{border:none;height:1px;background:#1b2130;margin:.5rem 0 .75rem}
+.tr-avatar{width:44px;height:44px;border-radius:12px;background:#121826;border:1px solid #1d2431;display:flex;align-items:center;justify-content:center;font-weight:800}
+.tr-profile-fav{margin-left:auto;background:transparent;border:1px solid #263147;border-radius:8px;padding:.35rem .6rem;color:#aeb7c6;cursor:pointer}
+.tr-profile-fav.tr-active{border-color:#f59e0b;color:#f59e0b}
+.tr-fav-star{background:transparent;border:none;cursor:pointer;font-size:20px;line-height:1;color:#9ca3af;transition:.15s}
+.tr-fav-star.tr-active{color:#f59e0b}
+</style>
+
+<!-- Profile Modal -->
+<div class="tr-overlay" id="trProfileOverlay" aria-hidden="true">
+  <div class="tr-modal" style="position:relative">
+    <button class="tr-close" onclick="(document.getElementById('trProfileOverlay').style.display='none')">✕</button>
+    <div class="tr-row" style="gap:10px;margin-bottom:6px">
+      <div id="trModalAvatar" class="tr-avatar">TR</div>
+      <div>
+        <div id="trModalName" style="font-weight:900"></div>
+        <div id="trModalBio" class="tr-muted" style="margin-top:2px"></div>
+      </div>
+      <button id="trProfileFavBtn" class="tr-profile-fav">☆</button>
+    </div>
+    <div id="trModalSocial"></div>
+    <hr class="tr-line"/>
+    <div id="trModalContent"></div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="tr-overlay" id="trAuthModal" aria-hidden="true">
+  <div class="tr-modal" style="max-width:460px;position:relative">
+    <button class="tr-close" onclick="(document.getElementById('trAuthModal').style.display='none')">✕</button>
+    <h2 style="margin:4px 0 10px">Welcome</h2>
+    <div class="tr-row" style="margin-bottom:.75rem">
+      <button id="trTabSignIn" class="tr-btn" style="flex:1">Sign In</button>
+      <button id="trTabSignUp" class="tr-btn" style="flex:1">Sign Up</button>
+    </div>
+    <form id="trEmailAuthForm" data-mode="signin">
+      <label class="tr-label">Email</label>
+      <input id="trAuthEmail" type="email" class="tr-input" placeholder="you@example.com" required />
+      <label class="tr-label">Password</label>
+      <input id="trAuthPassword" type="password" class="tr-input" placeholder="••••••••" required />
+      <div id="trPass2wrap" style="display:none">
+        <label class="tr-label">Confirm Password</label>
+        <input id="trAuthPassword2" type="password" class="tr-input" placeholder="••••••••" />
+      </div>
+      <button id="trEmailAuthBtn" class="tr-btn tr-btn-primary" type="submit" style="width:100%;margin-top:.6rem">Sign In</button>
+    </form>
+    <div class="tr-row" style="margin:.9rem 0">
+      <div style="flex:1;height:1px;background:#182033"></div><span class="tr-muted" style="font-size:.92rem">OR</span><div style="flex:1;height:1px;background:#182033"></div>
+    </div>
+    <button id="trGoogleAuthBtn" class="tr-btn" style="width:100%">Continue with Google</button>
+    <div style="margin-top:.6rem;display:flex;justify-content:space-between;align-items:center;">
+      <a id="trForgotPass" href="#" style="color:#a7b7ff;text-decoration:underline;font-size:.92rem">Forgot Password?</a>
+      <span id="trAuthToggleText" class="tr-muted" style="font-size:.92rem;cursor:pointer">Don’t have an account? <a id="trToSignUp" href="#" style="color:#a7b7ff;text-decoration:underline">Sign Up</a></span>
+    </div>
+    <p id="trAuthStatus" class="tr-muted" style="margin-top:.6rem"></p>
+  </div>
+</div>
+
+<!-- Submit Influencer Modal -->
+<div class="tr-overlay" id="trSubmitOverlay" aria-hidden="true">
+  <div class="tr-modal" style="max-width:680px;position:relative">
+    <button class="tr-close" onclick="(document.getElementById('trSubmitOverlay').style.display='none')">✕</button>
+    <h2 style="margin:4px 0 10px">Submit Influencer for Review</h2>
+    <form id="trSubmitInfluencerForm">
+      <div class="tr-col2">
+        <label class="tr-label" style="grid-column:1/-1">Full Name</label>
+        <input id="tr_si_name" class="tr-input" style="grid-column:1/-1" required />
+        <label class="tr-label">Niche</label><input id="tr_si_niche" class="tr-input" required />
+        <label class="tr-label" style="grid-column:1/-1">Short Bio</label>
+        <textarea id="tr_si_bio" class="tr-textarea" style="grid-column:1/-1;height:110px" required></textarea>
+        <hr class="tr-line" style="grid-column:1/-1"/>
+        <label class="tr-label" style="grid-column:1/-1;font-weight:700">Social Profiles (optional)</label>
+        <label class="tr-label">Instagram</label><input id="tr_si_instagram" class="tr-input" placeholder="https://instagram.com/..." />
+        <label class="tr-label">TikTok</label><input id="tr_si_tiktok" class="tr-input" placeholder="https://tiktok.com/@..." />
+        <label class="tr-label">YouTube</label><input id="tr_si_youtube" class="tr-input" placeholder="https://youtube.com/@..." />
+        <label class="tr-label">Facebook</label><input id="tr_si_facebook" class="tr-input" placeholder="https://facebook.com/..." />
+        <label class="tr-label">LinkedIn</label><input id="tr_si_linkedin" class="tr-input" placeholder="https://linkedin.com/in/..." />
+        <label class="tr-label">X (Twitter)</label><input id="tr_si_twitter" class="tr-input" placeholder="https://twitter.com/..." />
+        <label class="tr-label">Website</label><input id="tr_si_website" class="tr-input" placeholder="https://..." />
+      </div>
+      <button class="tr-btn tr-btn-primary" type="submit" style="margin-top:12px">Submit for Review</button>
+      <p id="trSubmitInfluencerStatus" class="tr-muted" style="margin-top:.5rem"></p>
+    </form>
+  </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div class="tr-overlay" id="trAdminOverlay" aria-hidden="true">
+  <div class="tr-modal" style="position:relative">
+    <button class="tr-close" onclick="(document.getElementById('trAdminOverlay').style.display='none')">✕</button>
+    <h2 style="margin:4px 0 10px">Admin – Pending Influencers</h2>
+    <div id="trAdminPendingList" class="tr-muted">Loading…</div>
+  </div>
+</div>
+
+<script type="module">
+// Firebase SDK (kept separate, no UI change)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut,
+         createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, deleteDoc,
+         serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Use existing project: rateinflu (preserve config)
+const firebaseConfig = {
+  apiKey: "AIzaSyAjYOUXAU1FusccFJQcsEWmo8W9CgSSmfA",
+  authDomain: "rateinflu.firebaseapp.com",
+  projectId: "rateinflu",
+  storageBucket: "rateinflu.firebasestorage.app",
+  messagingSenderId: "619786232167",
+  appId: "1:619786232167:web:eca2e76803201421eccfc2",
+  measurementId: "G-WPDZMZHMCW"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// --- Helpers
+const qs = (s, r=document)=>r.querySelector(s);
+const qsa = (s, r=document)=>Array.from(r.querySelectorAll(s));
+const show = el => { if (el) el.style.display='flex'; };
+const hide = el => { if (el) el.style.display='none'; };
+const t = s => (s||'').trim();
+const avatarFor = name => (name||'TR').slice(0,2).toUpperCase();
+
+// Try to find an existing Sign In trigger and bind it to modal
+function bindSignInButtons(){
+  const candidates = [
+    '#signInBtn', '.sign-in-btn', '[data-action=\"sign-in\"]',
+    'header button', 'header a', '.nav a', '.nav button'
+  ];
+  const seen = new Set();
+  for (const sel of candidates){
+    qsa(sel).forEach(el=>{
+      if (seen.has(el)) return;
+      const txt = (el.textContent||'').toLowerCase();
+      if (el.matches('#signInBtn, .sign-in-btn, [data-action=\"sign-in\"]') || txt.includes('sign in') || txt.includes('login') ){
+        el.addEventListener('click', (e)=>{ e.preventDefault(); show(qs('#trAuthModal')); });
+        seen.add(el);
+      }
+    });
+  }
+}
+bindSignInButtons();
+
+// Optional: Submit Influencer button hook if present
+function bindSubmitButton(){
+  const el = qs('#submitInfluencerBtn, .submit-influencer-btn, [data-action=\"submit-influencer\"]');
+  if (!el) return;
+  el.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if (!auth.currentUser){ show(qs('#trAuthModal')); return; }
+    show(qs('#trSubmitOverlay'));
+  });
+}
+bindSubmitButton();
+
+// Social icons (monoline) generator
+function iconSVG(name){
+  const common = 'width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"';
+  const map = {
+    facebook: `<svg ${common}><path d=\"M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z\"/></svg>`,
+    instagram:`<svg ${common}><rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"5\"/><path d=\"M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z\"/><circle cx=\"17.5\" cy=\"6.5\" r=\"1\"/></svg>`,
+    linkedin: `<svg ${common}><path d=\"M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V9h4v2\"/><rect x=\"2\" y=\"9\" width=\"4\" height=\"14\"/><circle cx=\"4\" cy=\"4\" r=\"2\"/></svg>`,
+    tiktok:   `<svg ${common}><path d=\"M15 3c1 2 3 3 5 3v4c-2 0-4-1-5-2v6a6 6 0 1 1-6-6h1v4h-1a2 2 0 1 0 2 2V3z\"/></svg>`,
+    youtube:  `<svg ${common}><path d=\"M22.54 6.42A2.78 2.78 0 0 0 20.6 4.5C18.88 4 12 4 12 4s-6.88 0-8.6.5A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.4 19.5C5.12 20 12 20 12 20s6.88 0 8.6-.5a2.78 2.78 0 0 0 1.94-1.92A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z\"/><polygon points=\"10 15 15 12 10 9 10 15\"/></svg>`,
+    twitter:  `<svg ${common}><path d=\"M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 8v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83\"/></svg>`,
+    website:  `<svg ${common}><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3.6 9h16.8\"/><path d=\"M3.6 15h16.8\"/><path d=\"M12 3a15.3 15.3 0 0 1 0 18\"/><path d=\"M12 3a15.3 15.3 0 0 0 0 18\"/></svg>`
+  };
+  return map[name] || map['website'];
+}
+function renderSocialIconsRow(socialLinks){
+  if(!socialLinks) return '';
+  const order = ['instagram','tiktok','youtube','facebook','linkedin','twitter','website'];
+  const items = order.filter(k=>socialLinks[k]).map(k=>{
+    const url = socialLinks[k];
+    return `<a class="tr-social" href="${url}" target="_blank" rel="noopener noreferrer" title="${k}" style="display:inline-flex;align-items:center;color:#8b96ad;opacity:.95;transition:.15s;margin-right:.5rem">${iconSVG(k)}</a>`;
+  });
+  if(!items.length) return '';
+  return `<div class="tr-social-row" style="margin:.35rem 0 .1rem">${items.join('')}</div>`;
+}
+
+// --- State
+let influencersData = [];
+
+// If your existing page already renders cards, we will detect them via data-inf-id or ?inf=
+async function loadInfluencers(){
+  try{
+    const qRef = query(collection(db,'influencers'), orderBy('name'));
+    const snap = await getDocs(qRef);
+    influencersData = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  }catch(e){ /* silent: page may not need it immediately */ }
+}
+
+// Inject a favorite star into cards that expose [data-inf-id] and a header row
+function tryInjectFavStars(){
+  const user = auth.currentUser;
+  const cards = qsa('[data-inf-id]');
+  if (!cards.length) return;
+  cards.forEach(async card=>{
+    if (card.querySelector('.tr-fav-star')) return;
+    const iid = card.getAttribute('data-inf-id');
+    // Try to place star at the end of the first header row
+    const header = card.querySelector('.title-row, .card-title-row, h3, h2');
+    const target = header || card;
+    const btn = document.createElement('button');
+    btn.className = 'tr-fav-star';
+    btn.textContent = '☆';
+    btn.title = 'Favorite';
+    btn.style.marginLeft = '8px';
+    target.appendChild(btn);
+
+    if (user){
+      const fav = await getDoc(doc(db,'users',user.uid,'favorites',iid));
+      if (fav.exists()) { btn.textContent='⭐'; btn.classList.add('tr-active'); }
+      btn.onclick = ()=>toggleFavorite(iid,btn);
+    } else {
+      btn.onclick = ()=>show(qs('#trAuthModal'));
+    }
+  });
+}
+
+// Favorites core
+async function toggleFavorite(iid, el){
+  const user = auth.currentUser; if(!user){ show(qs('#trAuthModal')); return; }
+  const ref = doc(db,'users',user.uid,'favorites',iid);
+  const snap = await getDoc(ref);
+  if (snap.exists()){ await deleteDoc(ref); el.textContent='☆'; el.classList.remove('tr-active'); }
+  else { await setDoc(ref,{ favoritedAt: serverTimestamp() }); el.textContent='⭐'; el.classList.add('tr-active'); }
+}
+
+// Profile modal open by URL param (?inf=)
+async function openProfileFromParam(){
+  const params = new URLSearchParams(location.search);
+  const inf = params.get('inf');
+  if (!inf) return;
+  if (!influencersData.length) await loadInfluencers();
+  viewInfluencerProfile(inf);
+}
+function closeProfile(){ hide(qs('#trProfileOverlay')); }
+
+// Profile viewer
+async function viewInfluencerProfile(influencerId){
+  let inf = influencersData.find(x=>x.id===influencerId);
+  if (!inf){
+    const s = await getDoc(doc(db,'influencers',influencerId));
+    if (!s.exists()) return alert('Profile not found');
+    inf = { id:s.id, ...s.data() };
+  }
+  qs('#trModalAvatar').textContent = avatarFor(inf.name);
+  qs('#trModalName').textContent = inf.name || 'Unknown Influencer';
+  qs('#trModalBio').textContent = inf.bio || '';
+  qs('#trModalSocial').innerHTML = renderSocialIconsRow(inf.socialLinks||{});
+  const pf=qs('#trProfileFavBtn');
+  const iid=influencerId;
+  const user = auth.currentUser;
+  if (user){
+    const fav=await getDoc(doc(db,'users',user.uid,'favorites',iid));
+    pf.textContent = fav.exists() ? '⭐' : '☆';
+    pf.classList.toggle('tr-active', fav.exists());
+    pf.onclick=()=>toggleFavorite(iid,pf);
+  }else{
+    pf.textContent='☆'; pf.classList.remove('tr-active'); pf.onclick=()=>show(qs('#trAuthModal'));
+  }
+  show(qs('#trProfileOverlay'));
+}
+window.viewInfluencerProfile = viewInfluencerProfile;
+
+// --- Auth modal logic
+function setMode(m){
+  const pass2wrap = qs('#trPass2wrap');
+  const btn = qs('#trEmailAuthBtn');
+  qs('#trEmailAuthForm').dataset.mode=m;
+  pass2wrap.style.display = m==='signup' ? 'block' : 'none';
+  btn.textContent = m==='signup' ? 'Create Account' : 'Sign In';
+  qs('#trAuthStatus').textContent='';
+}
+qs('#trTabSignIn')?.addEventListener('click',()=>setMode('signin'));
+qs('#trTabSignUp')?.addEventListener('click',()=>setMode('signup'));
+qs('#trToSignUp')?.addEventListener('click',(e)=>{ e.preventDefault(); setMode('signup'); });
+
+qs('#trForgotPass')?.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const email=t(qs('#trAuthEmail').value);
+  if(!email) return alert('Enter your email first.');
+  try{ await sendPasswordResetEmail(auth,email); alert('Password reset link sent.'); }catch(err){ alert(err.message||'Failed to send link'); }
+});
+qs('#trGoogleAuthBtn')?.addEventListener('click', ()=>signInWithPopup(auth,googleProvider).catch(e=>alert('Google sign-in failed')));
+
+qs('#trEmailAuthForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email=t(qs('#trAuthEmail').value);
+  const pass=t(qs('#trAuthPassword').value);
+  const pass2=t(qs('#trAuthPassword2')?.value||'');
+  const mode=e.currentTarget.dataset.mode;
+  const status=qs('#trAuthStatus'); status.textContent='Processing…';
+  try{
+    if(mode==='signup'){
+      if(pass!=pass2){ status.textContent='Passwords do not match.'; return; }
+      const cred=await createUserWithEmailAndPassword(auth,email,pass);
+      await setDoc(doc(db,'users',cred.user.uid), { email, role:'user', joinedAt: serverTimestamp(), lastLoginAt: serverTimestamp() }, { merge:true });
+    }else{
+      const cred=await signInWithEmailAndPassword(auth,email,pass);
+      await setDoc(doc(db,'users',cred.user.uid), { lastLoginAt: serverTimestamp() }, { merge:true });
+    }
+    status.textContent='✅ Success'; setTimeout(()=>hide(qs('#trAuthModal')),300);
+  }catch(err){ status.textContent='❌ '+(err.message||'Auth failed'); }
+});
+
+// Auth state → bind user menu (non-intrusive) + admin panel exposure (via window.openAdmin)
+onAuthStateChanged(auth, async (user)=>{
+  // Attempt to inject fav stars once user known
+  tryInjectFavStars();
+});
+
+// Submit Influencer logic
+qs('#trSubmitInfluencerForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const u = auth.currentUser; if(!u){ show(qs('#trAuthModal')); return; }
+  const socialLinks={};
+  const map={instagram:'tr_si_instagram',tiktok:'tr_si_tiktok',youtube:'tr_si_youtube',facebook:'tr_si_facebook',linkedin:'tr_si_linkedin',twitter:'tr_si_twitter',website:'tr_si_website'};
+  Object.entries(map).forEach(([k,id])=>{ const v=t(qs('#'+id).value); if(v) socialLinks[k]=v; });
+  const payload={
+    name: t(qs('#tr_si_name').value),
+    niche: t(qs('#tr_si_niche').value),
+    bio: t(qs('#tr_si_bio').value),
+    socialLinks, approved:false, verified:false, submittedBy:u.uid, createdAt: serverTimestamp()
+  };
+  const status=qs('#trSubmitInfluencerStatus');
+  status.textContent='Submitting…';
+  try{ await addDoc(collection(db,'pendingInfluencers'), payload); status.textContent='✅ Submitted for review'; e.target.reset(); }
+  catch(err){ status.textContent='❌ '+(err.message||'Failed'); }
+});
+
+// Admin panel (role-gated). Call window.openAdmin() from your existing UI if needed.
+async function openAdmin(){
+  const u=auth.currentUser; if(!u){ show(qs('#trAuthModal')); return; }
+  const s=await getDoc(doc(db,'users',u.uid)); const role=s.exists()?(s.data().role||'user'):'user';
+  if (role!=='admin'){ alert('You do not have permission.'); return; }
+  show(qs('#trAdminOverlay'));
+  const list=qs('#trAdminPendingList');
+  list.innerHTML='Loading…';
+  const snap = await getDocs(collection(db,'pendingInfluencers'));
+  if (snap.empty){ list.innerHTML='<div class="tr-muted">No pending submissions.</div>'; return; }
+  const rows=[];
+  for (const d of snap.docs){
+    const v=d.data();
+    rows.push(`
+      <div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;border:1px solid #1c2332;border-radius:12px;padding:12px;margin:.4rem 0">
+        <div>
+          <div style="font-weight:800">${v.name||''}</div>
+          <div class="tr-muted">${v.niche||''} • ${(v.socialLinks&&Object.keys(v.socialLinks)[0])||''}</div>
+          <div class="tr-muted" style="margin-top:.25rem">${v.bio||''}</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:start">
+          <button class="tr-btn tr-btn-primary" onclick="approvePending('${d.id}')">Approve</button>
+          <button class="tr-btn" onclick="rejectPending('${d.id}')">Reject</button>
+        </div>
+      </div>`);
+  }
+  list.innerHTML=rows.join('');
+}
+window.openAdmin = openAdmin;
+window.approvePending = async function(id){
+  const ref=doc(db,'pendingInfluencers',id);
+  const s=await getDoc(ref); if(!s.exists()) return;
+  const data=s.data();
+  await setDoc(doc(db,'influencers',id), { ...data, approved:true, verified:true, createdAt: serverTimestamp() }, { merge:true });
+  await deleteDoc(ref);
+  openAdmin();
+}
+window.rejectPending = async function(id){
+  await deleteDoc(doc(db,'pendingInfluencers',id)); openAdmin();
+}
+
+// Router: if ?inf=<id> present, open profile
+(async()=>{ await loadInfluencers(); openProfileFromParam(); })();
+
+// Public API to show modals without UI changes
+window.trShowAuth = ()=>show(qs('#trAuthModal'));
+window.trShowSubmit = ()=>{ if (!auth.currentUser) return show(qs('#trAuthModal')); show(qs('#trSubmitOverlay')); };
+
+</script>
+<!-- ===== /TrustReview Enhancements ===== -->
 </body>
 </html>
