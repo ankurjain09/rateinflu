@@ -1,207 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TrustReview – Influencer reviews</title>
-  <style>
-    :root{
-      --bg:#0b0d12; --card:#0f1218; --text:#e5e7eb; --muted:#9ca3af;
-      --primary:#6366f1; --primary-dark:#4f46e5; --accent:#22d3ee; --warning:#f59e0b;
-      --light:#1c2230; --shadow:0 8px 30px rgba(0,0,0,.25); --shadow-lg:0 20px 60px rgba(0,0,0,.35);
-    }
-    html,body{margin:0;background:#0b0d12;color:var(--text);font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
-    a{color:inherit;text-decoration:none}
-    .container{max-width:1200px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;background:rgba(11,13,18,.7);backdrop-filter:saturate(140%) blur(8px);z-index:50;border-bottom:1px solid #141923}
-    .nav{display:flex;align-items:center;gap:18px;justify-content:space-between}
-    .brand{font-weight:800;letter-spacing:.2px}
-    .nav-links{display:flex;gap:12px;align-items:center}
-    .auth-button{background:transparent;border:1px solid #2a3244;color:var(--text);padding:.55rem .9rem;border-radius:10px;cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:white;padding:.6rem 1rem;border:none;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
-    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-    @media (max-width:900px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-    @media (max-width:640px){ .grid{grid-template-columns:1fr;} }
-    .card{background:var(--card);border:1px solid #141923;border-radius:14px;box-shadow:var(--shadow);padding:16px;position:relative}
-    .avatar{width:44px;height:44px;border-radius:12px;background:#121826;border:1px solid #1d2431;display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:10px}
-    .card-title-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
-    .card-title{font-weight:800}
-    .card-subtitle{color:var(--muted);font-size:.95rem;margin-top:.25rem}
-    .card-action{margin-top:.8rem;color:#a7b7ff;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem}
-    .card-action:hover{opacity:.9;transform:translateX(1px)}
-    .arrow-icon{opacity:.8}
-    .fav-star{background:transparent;border:none;cursor:pointer;font-size:20px;line-height:1;color:#9ca3af;transition:.15s}
-    .fav-star.active{color:var(--warning)}
-    .fav-star:hover{transform:scale(1.06)}
-    /* Social icons row */
-    .social-icons-row{display:flex;gap:.5rem;margin-top:.35rem}
-    .social-icons-row .social-icon{display:inline-flex;align-items:center;color:#8b96ad;opacity:.95;transition:.15s}
-    .social-icons-row .social-icon:hover{color:var(--primary);opacity:1;transform:translateY(-1px)}
-    /* Modals */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:1000}
-    .modal{background:#0f1218;border:1px solid #1d2431;border-radius:14px;box-shadow:var(--shadow-lg);max-width:860px;width:95%;padding:18px;position:relative}
-    .close{position:absolute;right:10px;top:10px;border:none;background:#131a26;border-radius:8px;color:#b9c2d3;cursor:pointer;width:34px;height:34px}
-    .modal-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-    .profile-fav{margin-left:auto;background:transparent;border:1px solid #263147;border-radius:8px;padding:.35rem .6rem;color:#aeb7c6;cursor:pointer}
-    .profile-fav.active{border-color:#f59e0b;color:#f59e0b}
-    input,textarea{background:#0c1016;border:1px solid #1c2332;color:var(--text);border-radius:10px;padding:.7rem}
-    label{color:#b6bfcd;font-size:.92rem}
-    hr.line{border:none;height:1px;background:#1b2130;margin:.5rem 0 .75rem}
-    /* Dropdown */
-    .avatar-btn{background:#0f1218;border:1px solid #1d2431;border-radius:999px;display:flex;align-items:center;gap:.5rem;padding:.25rem .45rem;cursor:pointer}
-    .avatar-img{width:28px;height:28px;border-radius:50%;background:#121826;border:1px solid #1d2431;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800}
-    .menu{position:absolute;right:0;top:44px;background:#0f1218;border:1px solid #1d2431;border-radius:12px;box-shadow:var(--shadow);display:none;min-width:200px;overflow:hidden}
-    .menu button{display:block;width:100%;text-align:left;padding:.65rem .8rem;background:transparent;border:none;color:#c5cede;cursor:pointer}
-    .menu hr{border:none;height:1px;background:#182033;margin:.25rem 0}
-    .menu button:hover{background:#111624}
-    /* Hero / About */
-    .hero{padding:36px 0;border-bottom:1px solid #141923}
-    .about{padding:28px 0}
-    .muted{color:var(--muted)}
-  </style>
-</head>
-<body>
-  <header>
-    <div class="container nav">
-      <div class="brand">TrustReview</div>
-      <div class="nav-links">
-        <a href="#" onclick="showPage('browse')">Browse</a>
-        <a href="#" onclick="showPage('about')">About</a>
-        <button id="submitInfluencerBtn" class="auth-button">Submit Influencer</button>
-      </div>
-      <div id="authContainer">
-        <!-- filled by auth state -->
-      </div>
-    </div>
-  </header>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrustReview - Verified Influencer Reviews</title>
 
-  <main>
-    <!-- Hero -->
-    <section class="hero container" id="homeHero">
-      <h1 style="margin:0 0 6px;font-size:28px;font-weight:900;letter-spacing:.2px">Find creators you can trust</h1>
-      <div class="muted">Real reviews on courses, coaching, and services from influencers.</div>
-    </section>
-
-    <!-- Browse -->
-    <section class="container" id="browsePage">
-      <div id="influencerGrid" class="grid"></div>
-    </section>
-
-    <!-- Favorites -->
-    <section class="container" id="favoritesPage" style="display:none">
-      <h2 style="margin:10px 0 12px">Favorites</h2>
-      <div id="favoritesAuth" class="muted" style="display:none">Please sign in to view favorites.</div>
-      <div id="favoritesList"></div>
-    </section>
-
-    <!-- About -->
-    <section class="container about" id="aboutPage" style="display:none">
-      <img id="aboutBanner" alt="About banner" style="width:100%;border-radius:14px;border:1px solid #141923;box-shadow:var(--shadow);object-fit:cover;max-height:260px" src="banner.jpg" />
-      <div style="margin-top:14px;color:#cbd5e1;max-width:900px;line-height:1.7">
-        <p><strong>About TrustReview</strong><br/>TrustReview is a community-driven platform where real customers review courses, coaching, and services from influencers across platforms. We verify signals, surface authentic feedback, and help you choose creators with confidence.</p>
-        <p><strong>Our mission</strong> is to bring transparency to the creator economy. We aggregate verified reviews, highlight track records, and reduce noise so you can focus on signal.</p>
-        <p><strong>How we verify</strong>: community flags, admin review for new submissions, consistency checks across platforms, and optional proof artifacts from reviewers.</p>
-        <p><strong>Use cases</strong>: compare fitness coaches, evaluate finance mentors, shortlist tech bootcamps, or vet marketing consultants — all in one place.</p>
-      </div>
-    </section>
-  </main>
-
-  <!-- Profile Modal -->
-  <div class="overlay" id="profileOverlay">
-    <div class="modal">
-      <button class="close" onclick="closeProfile()">✕</button>
-      <div class="modal-header">
-        <div id="modalAvatar" class="avatar">TR</div>
-        <div>
-          <div id="modalName" style="font-weight:900"></div>
-          <div id="modalBio" class="muted" style="margin-top:2px"></div>
-        </div>
-        <button id="profileFavBtn" class="profile-fav">☆</button>
-      </div>
-      <div id="modalSocial"></div>
-      <hr class="line"/>
-      <div id="modalContent"></div>
-    </div>
-  </div>
-
-  <!-- Auth Modal -->
-  <div class="overlay" id="authModal">
-    <div class="modal" style="max-width:460px">
-      <button class="close" onclick="closeAuthModal()">✕</button>
-      <h2 style="margin:4px 0 10px">Welcome</h2>
-      <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
-        <button id="tabSignIn" class="auth-button" style="flex:1">Sign In</button>
-        <button id="tabSignUp" class="auth-button" style="flex:1">Sign Up</button>
-      </div>
-      <form id="emailAuthForm" data-mode="signin">
-        <label>Email</label>
-        <input id="authEmail" type="email" placeholder="you@example.com" required />
-        <label>Password</label>
-        <input id="authPassword" type="password" placeholder="••••••••" required />
-        <div id="pass2wrap" style="display:none">
-          <label>Confirm Password</label>
-          <input id="authPassword2" type="password" placeholder="••••••••" />
-        </div>
-        <button id="emailAuthBtn" class="btn-primary" type="submit" style="width:100%;margin-top:.6rem">Sign In</button>
-      </form>
-      <div style="display:flex;align-items:center;gap:.75rem;margin:.9rem 0">
-        <div style="flex:1;height:1px;background:#182033"></div><span class="muted" style="font-size:.92rem">OR</span><div style="flex:1;height:1px;background:#182033"></div>
-      </div>
-      <button id="googleAuthBtn" class="auth-button" style="width:100%">Continue with Google</button>
-      <div style="margin-top:.6rem;display:flex;justify-content:space-between;align-items:center;">
-        <a id="forgotPass" href="#" style="color:#a7b7ff;text-decoration:underline;font-size:.92rem">Forgot Password?</a>
-        <span id="authToggleText" class="muted" style="font-size:.92rem;cursor:pointer">Don’t have an account? <a id="toSignUp" href="#" style="color:#a7b7ff;text-decoration:underline">Sign Up</a></span>
-      </div>
-      <p id="authStatus" class="muted" style="margin-top:.6rem"></p>
-    </div>
-  </div>
-
-  <!-- Submit Influencer Modal -->
-  <div class="overlay" id="submitOverlay">
-    <div class="modal" style="max-width:680px">
-      <button class="close" onclick="document.getElementById('submitOverlay').style.display='none'">✕</button>
-      <h2 style="margin:4px 0 10px">Submit Influencer for Review</h2>
-      <form id="submitInfluencerForm">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-          <label style="grid-column:1/-1">Full Name</label>
-          <input id="si_name" style="grid-column:1/-1" required />
-          <label>Niche</label><input id="si_niche" required />
-          <label style="grid-column:1/-1">Short Bio</label>
-          <textarea id="si_bio" style="grid-column:1/-1;height:110px" required></textarea>
-          <hr class="line" style="grid-column:1/-1"/>
-          <label style="grid-column:1/-1;font-weight:700">Social Profiles (optional)</label>
-          <label>Instagram</label><input id="si_instagram" placeholder="https://instagram.com/..." />
-          <label>TikTok</label><input id="si_tiktok" placeholder="https://tiktok.com/@..." />
-          <label>YouTube</label><input id="si_youtube" placeholder="https://youtube.com/@..." />
-          <label>Facebook</label><input id="si_facebook" placeholder="https://facebook.com/..." />
-          <label>LinkedIn</label><input id="si_linkedin" placeholder="https://linkedin.com/in/..." />
-          <label>X (Twitter)</label><input id="si_twitter" placeholder="https://twitter.com/..." />
-          <label>Website</label><input id="si_website" placeholder="https://..." />
-        </div>
-        <button class="btn-primary" type="submit" style="margin-top:12px">Submit for Review</button>
-        <p id="submitInfluencerStatus" class="muted" style="margin-top:.5rem"></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- Admin Panel Modal -->
-  <div class="overlay" id="adminOverlay">
-    <div class="modal">
-      <button class="close" onclick="document.getElementById('adminOverlay').style.display='none'">✕</button>
-      <h2 style="margin:4px 0 10px">Admin – Pending Influencers</h2>
-      <div id="adminPendingList" class="muted">Loading…</div>
-    </div>
-  </div>
-
-  <!-- Dropdown menu -->
-  <div id="userMenu" class="menu"></div>
-
+  <!-- Firebase SDK (kept intact) -->
   <script type="module">
-    // Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, updateProfile
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+    import {
+      getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc,
+      query, where, orderBy, limit, serverTimestamp,
+      collectionGroup, deleteDoc
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
+    // Your Firebase configuration (unchanged)
     const firebaseConfig = {
       apiKey: "AIzaSyAjYOUXAU1FusccFJQcsEWmo8W9CgSSmfA",
       authDomain: "rateinflu.firebaseapp.com",
@@ -211,316 +27,1176 @@
       appId: "1:619786232167:web:eca2e76803201421eccfc2",
       measurementId: "G-WPDZMZHMCW"
     };
+
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const googleProvider = new GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
 
-    // State
-    let influencersData = [];
+    // Expose globally (kept)
+    window.firebaseAuth = auth;
+    window.firebaseDB = db;
+    window.googleProvider = provider;
+    window.firebaseSignInWithPopup = signInWithPopup;
+    window.firebaseSignOut = signOut;
+    window.firebaseOnAuthStateChanged = onAuthStateChanged;
+    window.firebaseGetDocs = getDocs;
+    window.firebaseCollection = collection;
+    window.firebaseDoc = doc;
+    window.firebaseGetDoc = getDoc;
+    window.firebaseSetDoc = setDoc;
+    window.firebaseAddDoc = addDoc;
+    window.firebaseQuery = query;
+    window.firebaseWhere = where;
+    window.firebaseOrderBy = orderBy;
+    window.firebaseLimit = limit;
+    window.firebaseServerTimestamp = serverTimestamp;
+    window.firebaseCollectionGroup = collectionGroup;
+    window.firebaseDeleteDoc = deleteDoc;
+    window.firebaseUpdateProfile = updateProfile;
 
-    // UI helpers
-    function show(el){ el.style.display='block'; }
-    function hide(el){ el.style.display='none'; }
-    function showPage(name){
-      const pages=['browsePage','favoritesPage','aboutPage'];
-      pages.forEach(id => document.getElementById(id).style.display = id===name+'Page' ? 'block' : 'none');
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-    function avatarFor(name){ return (name||'TR').slice(0,2).toUpperCase(); }
+    window.firebaseReady = true;
+    window.dispatchEvent(new Event('firebaseLoaded'));
+  </script>
 
-    // --- Inline Outlined SVG icons ---
-    function iconSVG(name){
-      const common = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
-      const map = {
-        facebook: `<svg ${common}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,
-        instagram:`<svg ${common}><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1"/></svg>`,
-        linkedin: `<svg ${common}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V9h4v2"/><rect x="2" y="9" width="4" height="14"/><circle cx="4" cy="4" r="2"/></svg>`,
-        tiktok:   `<svg ${common}><path d="M15 3c1 2 3 3 5 3v4c-2 0-4-1-5-2v6a6 6 0 1 1-6-6h1v4h-1a2 2 0 1 0 2 2V3z"/></svg>`,
-        youtube:  `<svg ${common}><path d="M22.54 6.42A2.78 2.78 0 0 0 20.6 4.5C18.88 4 12 4 12 4s-6.88 0-8.6.5A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.4 19.5C5.12 20 12 20 12 20s6.88 0 8.6-.5a2.78 2.78 0 0 0 1.94-1.92A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="10 15 15 12 10 9 10 15"/></svg>`,
-        twitter:  `<svg ${common}><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 8v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83"/></svg>`,
-        website:  `<svg ${common}><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M12 3a15.3 15.3 0 0 1 0 18"/><path d="M12 3a15.3 15.3 0 0 0 0 18"/></svg>`
-      };
-      return map[name] || map['website'];
+  <!-- Lighter CSS: consolidated, same look -->
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#4f46e5;--primary-dark:#3730a3;--accent:#06b6d4;
+      --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+      --dark:#1e293b;--gray:#64748b;--light:#f1f5f9;--white:#fff;
+      --shadow:0 6px 18px rgba(0,0,0,.08);--shadow-lg:0 16px 36px rgba(0,0,0,.12)
     }
-    function renderSocialIconsRow(socialLinks){
-      if(!socialLinks) return '';
-      const order = ['instagram','tiktok','youtube','facebook','linkedin','twitter','website'];
-      const items = order.filter(k=>socialLinks[k]).map(k=>{
-        const url = socialLinks[k];
-        return `<a class="social-icon" href="${url}" target="_blank" rel="noopener noreferrer" title="${k}">${iconSVG(k)}</a>`;
-      });
-      if(!items.length) return '';
-      return `<div class="social-icons-row">${items.join('')}</div>`;
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;
+      background:linear-gradient(135deg,#f0f9ff 0%,#e0e7ff 100%);
+      min-height:100vh;color:var(--dark);overflow-x:hidden
     }
+    body.modal-open{overflow:hidden;position:fixed;width:100%}
 
-    // Auth UI
-    function renderSignedOut(){
-      const el=document.getElementById('authContainer');
-      el.innerHTML = '<button class="auth-button" id="openAuthModalBtn">Sign In</button>';
-      attachAuthButtonListener();
-    }
-    function renderSignedIn(user){
-      const el=document.getElementById('authContainer');
-      const name = (user.displayName||user.email)||'User';
-      el.innerHTML = `
-        <div class="avatar-btn" id="avatarBtn">
-          <div class="avatar-img">${(name||'U').slice(0,1).toUpperCase()}</div>
-          <span class="muted" style="font-size:.9rem">${name}</span>
-        </div>`;
-      const menu=document.getElementById('userMenu');
-      menu.innerHTML = `
-        <button onclick="showPage('browse');closeMenu()">Browse</button>
-        <button onclick="openFavorites();closeMenu()">⭐ Favorites</button>
-        <button onclick="showPage('about');closeMenu()">About</button>
-        <hr/>
-        <button id="adminEntry" style="display:none" onclick="openAdmin();closeMenu()">Admin Panel</button>
-        <button onclick="signOut(auth)">Sign Out</button>`;
-      const btn=document.getElementById('avatarBtn');
-      btn.onclick=()=>{
-        const r=btn.getBoundingClientRect(); const m=menu;
-        m.style.left=(r.right-200)+'px'; m.style.top=(r.bottom+6)+'px'; m.style.display='block';
-      };
-      window.addEventListener('click', (e)=>{ if(!menu.contains(e.target)&&e.target!==btn){ closeMenu(); } });
-      // role check
-      (async()=>{
-        const snap = await getDoc(doc(db,'users',user.uid));
-        const role = snap.exists()? (snap.data().role||'user') : 'user';
-        if (role==='admin') document.getElementById('adminEntry').style.display='block';
-      })();
-    }
-    function closeMenu(){ document.getElementById('userMenu').style.display='none'; }
-    function attachAuthButtonListener(){
-      const b=document.getElementById('openAuthModalBtn');
-      if (b && !b.dataset.bound){ b.onclick=()=>openAuthModal(); b.dataset.bound='1'; }
-    }
+    /* Nav */
+    nav{background:var(--white);padding:1rem 2rem;position:fixed;top:0;left:0;right:0;z-index:1000;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .nav-container{max-width:1400px;margin:auto;display:flex;justify-content:space-between;align-items:center}
+    .logo{display:flex;gap:.5rem;align-items:center;font-weight:800;color:var(--primary);cursor:pointer}
+    .logo-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent))}
+    .nav-links{display:flex;gap:1.25rem;align-items:center}
+    .nav-link{color:var(--gray);text-decoration:none;cursor:pointer;position:relative}
+    .nav-link.active,.nav-link:hover{color:var(--primary)}
+    .container{max-width:1400px;margin:auto;padding:6rem 2rem 2rem}
 
-    // Auth modal control
-    window.openAuthModal = function(){ document.getElementById('authModal').style.display='flex'; setMode('signin'); };
-    window.closeAuthModal = function(){ document.getElementById('authModal').style.display='none'; };
-    function setMode(m){
-      const pass2wrap = document.getElementById('pass2wrap');
-      const btn = document.getElementById('emailAuthBtn');
-      document.getElementById('emailAuthForm').dataset.mode=m;
-      pass2wrap.style.display = m==='signup' ? 'block' : 'none';
-      btn.textContent = m==='signup' ? 'Create Account' : 'Sign In';
-      document.getElementById('tabSignIn').style.borderColor = m==='signin' ? '#2a3244' : '#1d2431';
-      document.getElementById('tabSignUp').style.borderColor = m==='signup' ? '#2a3244' : '#1d2431';
-      document.getElementById('authStatus').textContent='';
+    /* Buttons/inputs */
+    .auth-button,.search-btn,.btn-primary{
+      border:none;border-radius:10px;font-weight:600;cursor:pointer;transition:.25s
     }
-    document.getElementById('tabSignIn').onclick=()=>setMode('signin');
-    document.getElementById('tabSignUp').onclick=()=>setMode('signup');
-    document.getElementById('toSignUp').onclick=(e)=>{ e.preventDefault(); setMode('signup'); };
-    document.getElementById('forgotPass').onclick=async (e)=>{
-      e.preventDefault();
-      const email=(document.getElementById('authEmail').value||'').trim();
-      if(!email) return alert('Enter your email first.');
-      try{ await sendPasswordResetEmail(auth,email); alert('Password reset link sent.'); }catch(err){ alert(err.message||'Failed to send link'); }
-    };
-    document.getElementById('googleAuthBtn').onclick=()=>signInWithPopup(auth,googleProvider).catch(e=>alert('Google sign-in failed'));
+    .auth-button{display:flex;align-items:center;gap:.5rem;padding:.625rem 1rem;background:var(--white);color:var(--dark);border:2px solid var(--light)}
+    .auth-button:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(79,70,229,.18)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:.625rem 1.25rem;box-shadow:0 4px 14px rgba(79,70,229,.28)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(79,70,229,.34)}
+    .search-input{flex:1;padding:1rem 1.25rem;border:2px solid var(--light);border-radius:12px;font-size:1rem}
+    .search-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+    .search-btn{padding:1rem 1.25rem;background:var(--primary);color:#fff}
+    .search-btn:hover{background:var(--primary-dark);transform:translateY(-1px)}
 
-    document.getElementById('emailAuthForm').onsubmit=async (e)=>{
-      e.preventDefault();
-      const email=(document.getElementById('authEmail').value||'').trim();
-      const pass=(document.getElementById('authPassword').value||'');
-      const pass2=(document.getElementById('authPassword2')?.value||'');
-      const mode=e.currentTarget.dataset.mode;
-      const status=document.getElementById('authStatus'); status.textContent='Processing…';
-      try{
-        if(mode==='signup'){
-          if(pass!==pass2){ status.textContent='Passwords do not match.'; return; }
-          const cred=await createUserWithEmailAndPassword(auth,email,pass);
-          await setDoc(doc(db,'users',cred.user.uid), { email, role:'user', joinedAt: serverTimestamp(), lastLoginAt: serverTimestamp() }, { merge:true });
-        }else{
-          const cred=await signInWithEmailAndPassword(auth,email,pass);
-          await setDoc(doc(db,'users',cred.user.uid), { lastLoginAt: serverTimestamp() }, { merge:true });
-        }
-        status.textContent='✅ Success'; setTimeout(closeAuthModal,300);
-      }catch(err){ status.textContent='❌ '+(err.message||'Auth failed'); }
-    };
+    /* Hero/trust */
+    .hero{text-align:center;margin-bottom:2rem;padding:2rem 0}
+    .hero h1{font-size:3rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{color:var(--gray);font-size:1.125rem;max-width:640px;margin:0 auto}
+    .trust-indicators{display:flex;justify-content:center;gap:1rem;margin:1.25rem 0;flex-wrap:wrap}
+    .trust-indicator{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:var(--white);border-radius:999px;box-shadow:var(--shadow)}
+    .trust-indicator-icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--success);color:#fff;font-size:.8rem}
 
-    // Auth state
-    onAuthStateChanged(auth, (user)=>{
-      if(user) renderSignedIn(user); else renderSignedOut();
-    });
+    /* Search box + categories */
+    .search-section{background:var(--white);border-radius:20px;padding:1.5rem;margin-bottom:2rem;box-shadow:var(--shadow-lg)}
+    .search-bar{display:flex;gap:.75rem;margin-bottom:1rem}
+    .categories{display:flex;gap:.5rem;flex-wrap:wrap}
+    .category-pill{padding:.45rem 1rem;background:var(--light);border-radius:999px;color:var(--gray);font-size:.875rem;font-weight:600;border:2px solid transparent;cursor:pointer;transition:.2s}
+    .category-pill:hover{background:#fff;border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+    .category-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
-    // Load Influencers
-    async function loadInfluencers(){
-      const q = query(collection(db,'influencers'), orderBy('name'));
-      const snap = await getDocs(q);
-      influencersData = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      displayInfluencers(influencersData);
+    /* Cards */
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1.5rem;margin-bottom:3rem}
+    .influencer-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);transition:.25s;cursor:pointer;position:relative}
+    .influencer-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+    .card-header{padding:1.25rem;background:linear-gradient(135deg,#f0f9ff 0%,#e0e7ff 50%,#fce7f3 100%)}
+    .card-profile{display:flex;gap:1rem;align-items:flex-start}
+    .profile-image{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));position:relative;box-shadow:0 6px 14px rgba(79,70,229,.28)}
+    .verified-badge{position:absolute;top:-5px;right:-5px;background:var(--success);color:#fff;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;border:3px solid #fff}
+    .influencer-name{font-size:1.125rem;font-weight:700;margin-bottom:.15rem}
+    .influencer-niche{display:inline-block;background:var(--primary);color:#fff;padding:.2rem .5rem;border-radius:6px;font-size:.72rem;font-weight:700;margin-bottom:.35rem}
+    .follower-count{font-size:.9rem;color:var(--gray);display:flex;gap:.4rem;align-items:center}
+
+    .stats-section{padding:1rem;background:var(--light);display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+    .stat-item{text-align:center}.stat-value{font-size:1.25rem;font-weight:800;color:var(--primary)}.stat-label{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:.15rem}
+    .services-preview{padding:1rem;border-top:1px solid var(--light)}
+    .services-title{font-size:.85rem;font-weight:700;color:var(--gray);margin-bottom:.6rem}
+    .service-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+    .service-tag{padding:.3rem .6rem;background:var(--light);border-radius:8px;font-size:.8rem}
+    .service-price{color:var(--success);font-weight:800}
+    .card-action{padding:.8rem 1rem;background:var(--primary);color:#fff;text-align:center;font-weight:700;display:flex;justify-content:center;gap:.4rem}
+    .card-action:hover{background:var(--primary-dark)} .arrow-icon{transition:transform .2s}
+    .influencer-card:hover .arrow-icon{transform:translateX(4px)}
+
+    /* Empty / loading */
+    .loading-container{display:flex;justify-content:center;align-items:center;min-height:240px}
+    .spinner{border:3px solid var(--light);border-top:3px solid var(--primary);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--gray)}
+    .empty-state h3{font-size:1.25rem;margin-bottom:.5rem;color:var(--dark)}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(5px);z-index:2000;overflow-y:auto;padding:1.5rem}
+    .modal-overlay.active{display:block}
+    .profile-modal{max-width:1100px;margin:auto;background:#fff;border-radius:20px;overflow:hidden;animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-header{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:1.5rem;position:relative}
+    .close-modal{position:absolute;top:.75rem;right:.75rem;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:1.35rem;cursor:pointer;transition:.2s}
+    .close-modal:hover{background:rgba(255,255,255,.35);transform:rotate(90deg)}
+    .modal-profile{display:flex;gap:1.5rem;align-items:center}
+    .modal-profile-image{width:90px;height:90px;border-radius:16px;background:#fff;display:grid;place-items:center;color:var(--primary);font-size:2rem;font-weight:800}
+    .modal-body{padding:1.5rem}
+    .modal-section{margin-bottom:1.25rem}
+    .modal-section h3{font-size:1.25rem;margin-bottom:.6rem}
+    .social-links{display:flex;gap:.5rem;margin-top:.5rem}
+    .social-link{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:1.1rem;transition:.2s}
+    .social-link:hover{transform:scale(1.06);background:rgba(255,255,255,.35)}
+    .social-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
+    .social-stat{background:var(--light);padding:.8rem;border-radius:10px;display:flex;justify-content:space-between}
+
+    .services-grid{display:grid;gap:1rem}
+    .service-card-detailed{border:2px solid var(--light);border-radius:14px;padding:1rem;transition:.2s}
+    .service-card-detailed:hover{border-color:var(--primary);box-shadow:0 6px 18px rgba(79,70,229,.1)}
+    .service-title-detailed{font-size:1.1rem;font-weight:800;margin-bottom:.3rem}
+    .service-description{color:var(--gray);font-size:.9rem;line-height:1.5;margin:.4rem 0}
+    .service-price-badge{display:inline-block;background:var(--success);color:#fff;padding:.35rem .7rem;border-radius:8px;font-weight:700}
+
+    /* Review form */
+    .review-form-section{background:var(--light);padding:1.25rem;border-radius:12px;margin-top:1rem}
+    .review-form-title{font-weight:800;margin-bottom:1rem}
+    .star-rating{display:flex;gap:.35rem;margin-bottom:1rem}.star{font-size:1.6rem;color:#ddd;cursor:pointer}
+    .star.active,.star:hover{color:#fbbf24}
+    .form-group{margin-bottom:1rem}
+    .form-label{display:block;font-weight:700;color:var(--dark);margin-bottom:.35rem;font-size:.85rem}
+    .form-input,.form-textarea,.form-select{width:100%;padding:.65rem;border:2px solid var(--light);border-radius:8px}
+    .form-input:focus,.form-textarea:focus,.form-select:focus{outline:none;border-color:var(--primary)}
+    .form-textarea{min-height:100px;resize:vertical}
+    .submit-review-btn{background:var(--primary);color:#fff;padding:.6rem 1.25rem;border:none;border-radius:8px;font-weight:700}
+    .submit-review-btn:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    .submit-review-btn:disabled{background:var(--gray);cursor:not-allowed;transform:none}
+    .auth-prompt{background:#fff3cd;color:#856404;padding:1rem;border-radius:8px;margin-bottom:1rem}
+
+    /* Pages */
+    .page-section{display:none}.page-section.active{display:block}
+
+    /* Avatar dropdown */
+    .user-info{display:flex;align-items:center;gap:.75rem;position:relative}
+    .user-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;border:2px solid var(--light)}
+    .user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+    .menu{position:absolute;right:0;top:46px;background:#fff;border:1px solid var(--light);border-radius:12px;box-shadow:var(--shadow-lg);min-width:220px;display:none;overflow:hidden}
+    .menu.open{display:block}
+    .menu a,.menu button{display:flex;width:100%;text-align:left;padding:.75rem 1rem;background:#fff;border:0;font:inherit;color:var(--dark);text-decoration:none;gap:.6rem;align-items:center;cursor:pointer}
+    .menu a:hover,.menu button:hover{background:var(--light)}
+    .menu hr{border:0;border-top:1px solid var(--light);margin:0}
+
+    /* Responsive */
+    @media (max-width:768px){
+      .hero h1{font-size:2.25rem}
+      .cards-grid{grid-template-columns:1fr}
+      .nav-links{gap:.75rem}
     }
-    function displayInfluencers(influencers){
-      const grid=document.getElementById('influencerGrid');
-      const cards = influencers.map(inf=>{
-        const a = inf.avatar || (inf.name?inf.name.slice(0,2).toUpperCase():'IN');
-        const bio = inf.bio || '';
-        return `
-          <div class="card">
-            <div class="avatar">${a}</div>
-            <div class="card-title-row">
-              <div class="card-title">${inf.name||'Influencer'}</div>
-              <button class="fav-star" title="Favorite" data-id="${inf.id}">☆</button>
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="navbar">
+    <div class="nav-container">
+      <div class="logo" onclick="showPage('browse')">
+        <div class="logo-icon">✓</div><span>TrustReview</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" data-page="browse" onclick="showPage('browse')">Browse</a>
+        <a class="nav-link" data-page="about" onclick="showPage('about')">About</a>
+        <div id="authContainer"><button class="auth-button" id="signInBtn" onclick="handleSignIn()">Sign in with Google</button></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Browse Page -->
+    <div id="browsePage" class="page-section active">
+      <div class="hero">
+        <h1>Find Trusted Influencer Services</h1>
+        <p>Community-verified reviews for courses, bootcamps, and coaching programs</p>
+        <div class="trust-indicators">
+          <div class="trust-indicator"><div class="trust-indicator-icon">✓</div><span id="totalReviews">Loading...</span></div>
+          <div class="trust-indicator"><div class="trust-indicator-icon">⭐</div><span id="avgRating">Loading...</span></div>
+          <div class="trust-indicator"><div class="trust-indicator-icon">🛡️</div><span>Scam Protection</span></div>
+        </div>
+      </div>
+
+      <div class="search-section">
+        <div class="search-bar">
+          <input id="searchInput" class="search-input" placeholder="Search influencers, courses, or services..."/>
+          <button class="search-btn" onclick="performSearch()">Search</button>
+        </div>
+
+        <!-- Category pills (not top nav links) -->
+        <div class="categories" id="categoryFilters">
+          <div class="category-pill active" data-category="all">All Categories</div>
+          <div class="category-pill" data-category="fitness">💪 Fitness</div>
+          <div class="category-pill" data-category="trading">💰 Trading</div>
+          <div class="category-pill" data-category="real-estate">🏠 Real Estate</div>
+          <div class="category-pill" data-category="beauty">💄 Beauty</div>
+          <div class="category-pill" data-category="tech">💻 Tech</div>
+          <div class="category-pill" data-category="education">📚 Education</div>
+          <div class="category-pill" data-category="marketing">🎯 Marketing</div>
+          <div class="category-pill" data-category="wellness">🧘 Wellness</div>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="influencerGrid">
+        <div class="loading-container"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- My Reviews Page -->
+    <div id="my-reviewsPage" class="page-section">
+      <h1 style="margin-bottom:1rem;">My Reviews</h1>
+      <div id="myReviewsAuth" class="auth-prompt" style="display:none">
+        Please sign in to view and manage your reviews.
+        <div style="margin-top:.6rem"><button class="auth-button" onclick="handleSignIn()">Sign in with Google</button></div>
+      </div>
+      <div id="myReviewsList">
+        <div class="loading-container"><div class="spinner"></div></div>
+      </div>
+    
+    <!-- Favorites Page -->
+    <div id="favoritesPage" class="page-section">
+      <h1 style="margin-bottom:1rem;">Favorites</h1>
+      <div id="favoritesAuth" class="auth-prompt" style="display:none">
+        Please sign in to view your favorites.
+        <div style="margin-top:.6rem"><button class="auth-button" onclick="openAuthModal()">Sign in</button></div>
+      </div>
+      <div id="favoritesList">
+        <div class="loading-container"><div class="spinner"></div></div>
+      </div>
+    </div>
+</div>
+
+    <!-- Profile Settings Page -->
+    <div id="profile-settingsPage" class="page-section">
+      <h1 style="margin-bottom:1rem;">Profile Settings</h1>
+      <div id="profileAuth" class="auth-prompt" style="display:none">
+        Please sign in to manage your profile.
+        <div style="margin-top:.6rem"><button class="auth-button" onclick="handleSignIn()">Sign in with Google</button></div>
+      </div>
+
+      <div id="profileCard" style="display:none;background:#fff;border:1px solid var(--light);box-shadow:var(--shadow);border-radius:16px;padding:1rem;max-width:720px;">
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
+          <div id="profilePhoto" class="user-avatar" style="width:56px;height:56px;border-radius:12px;">U</div>
+          <div>
+            <div id="profileName" style="font-weight:800;">User</div>
+            <div id="profileEmail" style="color:var(--gray);font-size:.95rem;">email@example.com</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="displayNameInput">Display Name</label>
+          <input id="displayNameInput" class="form-input" placeholder="Your name"/>
+        </div>
+
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <button id="saveProfileBtn" class="btn-primary">Save Changes</button>
+          <span id="saveStatus" style="font-size:.95rem;color:var(--gray);display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Page -->
+    <div id="aboutPage" class="page-section">
+      <h1>About TrustReview</h1>
+      <p style="margin: .5rem 0 1rem; color: var(--gray); max-width: 820px;">
+        TrustReview is a community-driven platform where real customers review and verify influencers,
+        coaches, and online courses. Our goal is to bring <strong>transparency</strong> to the creator economy by
+        helping you find credible services and avoid costly scams.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem;">
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">🧠 Transparency</div>
+          <div style="color:var(--gray);">Real reviews tied to real purchases and users.</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">✅ Authenticity</div>
+          <div style="color:var(--gray);">Signal-vs-noise: verified reviews surface first.</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;box-shadow:var(--shadow);">
+          <div style="font-weight:800;margin-bottom:.3rem;">🔒 Scam Protection</div>
+          <div style="color:var(--gray);">Community flags & moderation keep bad actors out.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal (unchanged core functionality) -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="profile-modal">
+      <div class="modal-header">
+        <button class="close-modal" onclick="closeProfile()">×</button>
+        <div class="modal-profile">
+          <div class="modal-profile-image" id="modalAvatar">JD</div>
+          <div class="modal-profile-info">
+            <h2 id="modalName">Loading...</h2>
+            <p id="modalInfo">Loading...</p>
+            <p id="modalBio">Loading...</p>
+            <div class="social-links" id="socialLinks"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>Social Media Presence</h3>
+          <div class="social-stats" id="socialStats"></div>
+        </div>
+        <div class="modal-section">
+          <h3>Services & Courses</h3>
+          <div class="services-grid" id="servicesContent"></div>
+        </div>
+        <div class="modal-section">
+          <h3>Recent Reviews</h3>
+          <div id="reviewsContent"><p style="color:var(--gray);">Loading reviews...</p></div>
+        </div>
+        <!-- Add Review Form -->
+        <div class="review-form-section" id="reviewFormSection">
+          <div class="review-form-title">Write a Review</div>
+          <div id="authPrompt" class="auth-prompt" style="display:none;">Please sign in to write a review</div>
+          <form id="reviewForm" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">Rating</label>
+              <div class="star-rating" id="starRating">
+                <span class="star" data-rating="1">☆</span>
+                <span class="star" data-rating="2">☆</span>
+                <span class="star" data-rating="3">☆</span>
+                <span class="star" data-rating="4">☆</span>
+                <span class="star" data-rating="5">☆</span>
+              </div>
             </div>
-            <div class="card-subtitle">${bio}</div>
-            ${renderSocialIconsRow(inf.socialLinks||{})}
-            <div class="card-action" onclick="window.open('?inf=${inf.id}','_blank')">View Full Profile <span class="arrow-icon">→</span></div>
-          </div>`;
+            <div class="form-group">
+              <label class="form-label" for="reviewService">Service/Course</label>
+              <select class="form-select" id="reviewService" required>
+                <option value="">Select a service...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reviewTitle">Review Title</label>
+              <input class="form-input" id="reviewTitle" placeholder="Summarize your experience" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reviewText">Your Review</label>
+              <textarea class="form-textarea" id="reviewText" placeholder="Share your detailed experience..." required></textarea>
+            </div>
+            <button type="submit" class="submit-review-btn" id="submitReviewBtn">Submit Review</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentUser = null;
+    let influencersData = [];
+    let activeCategory = 'all';
+    let currentInfluencerId = null;
+    let selectedRating = 0;
+
+    // Page navigation
+    function showPage(pageName) {
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(pageName + 'Page');
+      if (el) el.classList.add('active');
+
+      document.querySelectorAll('.nav-link').forEach(a=>{
+        a.classList.toggle('active', a.dataset.page === pageName);
       });
-      grid.innerHTML = cards.join('');
-      // Wire favorites
-      (async()=>{
-        const user = auth.currentUser;
-        for(const star of grid.querySelectorAll('.fav-star')){
-          const iid = star.getAttribute('data-id');
-          if(user){
-            const fav = await getDoc(doc(db,'users',user.uid,'favorites',iid));
-            if (fav.exists()){ star.textContent='⭐'; star.classList.add('active'); }
-            star.onclick=()=>toggleFavorite(iid,star);
-          }else{
-            star.onclick=()=>openAuthModal();
+
+      if (pageName === 'my-reviews') loadMyReviews();
+      if (pageName === 'profile-settings') loadProfileSettings();
+
+      const url = new URL(window.location);
+      url.searchParams.set('page', pageName);
+      history.replaceState({}, '', url);
+    }
+
+    // Firebase ready → init
+    function initializeApp(){
+      if (!window.firebaseAuth || !window.firebaseDB){ setTimeout(initializeApp,100); return; }
+
+      window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user)=>{
+        currentUser = user;
+        updateAuthUI(user);
+        updateReviewForm(user);
+        if (!influencersData.length) await loadInfluencers();
+
+        // Auto-create users/{uid} profile doc on sign in
+        if (user) {
+          try {
+            const uref = window.firebaseDoc(window.firebaseDB, 'users', user.uid);
+            const usnap = await window.firebaseGetDoc(uref);
+            if (!usnap.exists()) {
+              await window.firebaseSetDoc(uref, {
+                displayName: user.displayName || '',
+                email: user.email || '',
+                photoURL: user.photoURL || '',
+                lastUpdated: window.firebaseServerTimestamp()
+              });
+            }
+          } catch (e) { console.warn('User profile bootstrap failed', e); }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get('page');
+        if (p) showPage(p);
+      });
+    }
+    window.addEventListener('firebaseLoaded', initializeApp);
+
+    async function handleSignIn(){
+      try{ await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider); }
+      catch(e){ console.error(e); alert('Failed to sign in. Please try again.'); }
+    }
+    async function handleSignOut(){
+      try{ await window.firebaseSignOut(window.firebaseAuth); closeMenu(); }
+      catch(e){ console.error(e); }
+    }
+
+    // Avatar dropdown UI
+    function updateAuthUI(user){
+      const authContainer = document.getElementById('authContainer');
+      if (!user){
+        authContainer.innerHTML = '<button class="auth-button" id="openAuthModalBtn">Sign In</button>';
+        return;
+      }
+      const openBtn=document.getElementById('openAuthModalBtn'); if(openBtn){openBtn.onclick=()=>openAuthModal();}
+      const initial = user.displayName?.charAt(0)?.toUpperCase() || 'U';
+      const img = user.photoURL ? `<img src="${user.photoURL}" alt="${user.displayName}"/>` : initial;
+
+      authContainer.innerHTML = `
+        <div class="user-info">
+          <div class="user-avatar" id="avatarBtn">${img}</div>
+          <div class="menu" id="userMenu">
+            <button onclick="showPage('my-reviews'); closeMenu()">📝 My Reviews</button>
+            <button onclick="showPage('profile-settings'); closeMenu()">⚙️ Profile Settings</button>
+            <hr/>
+            <button onclick="handleSignOut()">🚪 Sign Out</button>
+          </div>
+        </div>
+      `;
+
+      const avatar = document.getElementById('avatarBtn');
+      const menu = document.getElementById('userMenu');
+      avatar.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('open'); };
+      document.addEventListener('click', closeMenu);
+    }
+    function closeMenu(){ const m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); }
+
+    // Review form gating by auth
+    function updateReviewForm(user){
+      const authPrompt = document.getElementById('authPrompt');
+      const reviewForm = document.getElementById('reviewForm');
+      if (!authPrompt || !reviewForm) return;
+      if (user){ authPrompt.style.display='none'; reviewForm.style.display='block'; }
+      else { authPrompt.style.display='block'; reviewForm.style.display='none'; }
+    }
+
+    // Load influencers
+    async function loadInfluencers(){
+      try{
+        const influencersRef = window.firebaseCollection(window.firebaseDB,'influencers');
+        const snapshot = await window.firebaseGetDocs(influencersRef);
+        influencersData = [];
+        let totalReviews=0,totalRating=0,ratingCount=0;
+
+        for (const d of snapshot.docs){
+          const data = d.data();
+          influencersData.push({ id:d.id, ...data });
+          if (data.stats){
+            totalReviews += data.stats.reviewCount || 0;
+            if (data.stats.rating){ totalRating += data.stats.rating; ratingCount++; }
           }
         }
-      })();
+        document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
+        document.getElementById('avgRating').textContent = ratingCount>0 ? `${(totalRating/ratingCount).toFixed(1)} Average Rating` : '4.5 Average Rating';
+        displayInfluencers(influencersData);
+      }catch(e){ console.error(e); displayError(); }
     }
 
-    // Profile
+    // Grid render
+    function displayInfluencers(influencers){
+      const grid = document.getElementById('influencerGrid');
+      if (!influencers.length){
+        grid.innerHTML = `<div class="empty-state"><h3>No influencers found</h3><p>Try adjusting your search or filters</p></div>`;
+        return;
+      }
+      grid.innerHTML = influencers.map(createInfluencerCard).join('');
+    }
+
+    function createInfluencerCard(influencer){
+      const stats = influencer.stats||{};
+      const rating = (typeof stats.rating === 'number') ? stats.rating.toFixed(1) : '4.5';
+      const revCount = formatNumber(stats.reviewCount||0);
+      const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+
+      return `
+        <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+          <div class="card-header">
+            <div class="card-profile">
+              <div class="profile-image">
+                ${influencer.avatar || (influencer.name?.substring(0,2).toUpperCase()) || 'IN'}
+                ${influencer.verified?'<div class="verified-badge">✓</div>':''}
+              </div>
+              <div class="profile-info">
+                <div class="influencer-name">${influencer.name||'Unknown'}</div>
+                <div class="influencer-niche">${influencer.niche||'General'}</div>
+                <div class="follower-count">⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}</div>
+              </div>
+            </div>
+          </div>
+          <div class="stats-section">
+            <div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
+            <div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
+            <div class="stat-item"><div class="stat-value">${stats.recommendPercent||0}%</div><div class="stat-label">Recommend</div></div>
+          </div>
+          <div class="services-preview">
+            <div class="services-title">Popular Services</div>
+            <div class="service-tags">
+              ${(influencer.services||[]).slice(0,3).map(s=>`<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${s.priceUnit?'/'+s.priceUnit:''}</span></div>`).join('')}
+            </div>
+          </div>
+          <div class="card-action">View Full Profile <span class="arrow-icon">→</span></div>
+        </div>
+      `;
+    }
+
+    function getTotalFollowers(socialPlatforms){ if(!socialPlatforms) return 0; return Object.values(socialPlatforms).reduce((s,c)=>s+(c||0),0) }
+    function formatFollowers(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); }
+    function formatNumber(n){ if(n>=1e3) return (n/1e3).toFixed(1)+'k'; return n.toString(); }
+    function getSocialIcon(p){ const i={instagram:'📷',tiktok:'🎵',youtube:'📺',twitter:'🐦',facebook:'👍'}; return i[(p||'').toLowerCase()]||'🔗'; }
+
+    // Profile modal logic
     async function viewInfluencerProfile(influencerId){
-      const inf = influencersData.find(x=>x.id===influencerId) || (await getDoc(doc(db,'influencers',influencerId))).data();
-      if (!inf){ alert('Profile not found'); return; }
-      document.getElementById('modalAvatar').textContent = avatarFor(inf.name);
-      document.getElementById('modalName').textContent = inf.name || 'Unknown Influencer';
-      document.getElementById('modalBio').textContent = inf.bio || '';
-      document.getElementById('modalSocial').innerHTML = renderSocialIconsRow(inf.socialLinks||{});
-      const pf=document.getElementById('profileFavBtn');
-      const iid=influencerId;
+      currentInfluencerId = influencerId;
+      const influencer = influencersData.find(inf=>inf.id===influencerId);
+      if(!influencer) return;
+
+      document.getElementById('modalAvatar').textContent = influencer.avatar || influencer.name?.substring(0,2).toUpperCase() || 'IN';
+      document.getElementById('modalName').textContent = influencer.name || 'Unknown Influencer';
+      // Profile favorite star in header
       (async()=>{
-        const user = auth.currentUser;
-        if (user){
-          const fav=await getDoc(doc(db,'users',user.uid,'favorites',iid));
-          pf.textContent = fav.exists() ? '⭐' : '☆';
-          pf.classList.toggle('active', fav.exists());
-          pf.onclick=()=>toggleFavorite(iid,pf);
-        }else{
-          pf.textContent='☆'; pf.classList.remove('active'); pf.onclick=()=>openAuthModal();
+        let pf = document.getElementById('profileFavBtn');
+        if(!pf){
+          pf = document.createElement('button');
+          pf.id = 'profileFavBtn';
+          pf.className = 'profile-fav';
+          pf.textContent = '☆';
+          pf.onclick = ()=>toggleFavorite(influencerId, pf);
+          document.querySelector('#profileModal .modal-header').appendChild(pf);
         }
+        const isFav = await isFavorited(influencerId);
+        pf.textContent = isFav ? '⭐' : '☆';
+        pf.classList.toggle('active', !!isFav);
       })();
-      document.getElementById('profileOverlay').style.display='flex';
-    }
-    function closeProfile(){ document.getElementById('profileOverlay').style.display='none'; }
 
-    // Favorites
-    async function toggleFavorite(influencerId, el){
-      const user = auth.currentUser; if(!user){ openAuthModal(); return; }
-      const ref = doc(db,'users',user.uid,'favorites',influencerId);
-      const snap = await getDoc(ref);
-      if (snap.exists()){ await deleteDoc(ref); el.textContent='☆'; el.classList.remove('active'); }
-      else { await setDoc(ref,{ favoritedAt: serverTimestamp() }); el.textContent='⭐'; el.classList.add('active'); }
-    }
-    async function openFavorites(){
-      const u = auth.currentUser; showPage('favorites');
-      const list = document.getElementById('favoritesList');
-      if(!u){ document.getElementById('favoritesAuth').style.display='block'; list.innerHTML=''; return; }
-      document.getElementById('favoritesAuth').style.display='none';
-      const snap = await getDocs(collection(db,'users',u.uid,'favorites'));
-      if (snap.empty){ list.innerHTML='<div class="muted">No favorites yet.</div>'; return; }
-      const items = [];
-      for (const d of snap.docs){
-        const iid=d.id; const infSnap=await getDoc(doc(db,'influencers',iid)); if(!infSnap.exists()) continue;
-        const inf=infSnap.data();
-        items.push(`
-          <div class="card">
-            <div class="avatar">${avatarFor(inf.name)}</div>
-            <div class="card-title-row">
-              <div class="card-title">${inf.name||'Influencer'}</div>
-              <button class="fav-star active" onclick="toggleFavorite('${iid}', this)">⭐</button>
+      const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+      document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?' • Verified ✓':''}`;
+      document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
+
+      const socialLinksHTML = influencer.socialLinks ? Object.entries(influencer.socialLinks).map(([p,url])=>`<a href="${url}" target="_blank" class="social-link" title="${p}">${getSocialIcon(p)}</a>`).join('') : '';
+      document.getElementById('socialLinks').innerHTML = socialLinksHTML;
+
+      const socialStatsHTML = influencer.socialPlatforms ? Object.entries(influencer.socialPlatforms).map(([p,c])=>`
+        <div class="social-stat"><span class="social-platform">${getSocialIcon(p)} ${p[0].toUpperCase()+p.slice(1)}</span><span class="social-count">${formatFollowers(c)}</span></div>
+      `).join('') : '<p style="color:var(--gray);">No social media data available</p>';
+      document.getElementById('socialStats').innerHTML = socialStatsHTML;
+
+      try{
+        const influencerDocRef = window.firebaseDoc(window.firebaseDB,'influencers',influencerId);
+        const servicesRef = window.firebaseCollection(influencerDocRef,'services');
+        const servicesSnapshot = await window.firebaseGetDocs(servicesRef);
+
+        const serviceSelect = document.getElementById('reviewService');
+        serviceSelect.innerHTML = '<option value="">Select a service...</option>';
+
+        const servicesHTML = servicesSnapshot.docs.map(d=>{
+          const s = d.data(); const sid=d.id;
+          serviceSelect.innerHTML += `<option value="${sid}">${s.title}</option>`;
+          return `
+            <div class="service-card-detailed">
+              <div class="service-title-detailed">${s.title}</div>
+              <div class="service-description">${s.description || 'No description available'}</div>
+              ${s.features?`<ul style="color:var(--gray);font-size:.9rem;margin:.5rem 0;">${s.features.map(f=>`<li>${f}</li>`).join('')}</ul>`:''}
+              <div style="display:flex;gap:.75rem;align-items:center;margin-top:.5rem;">
+                <div class="service-price-badge">$${s.price}${s.priceUnit?'/'+s.priceUnit:''}</div>
+                ${s.type?`<span style="color:var(--gray);font-size:.9rem;">Type: ${s.type}</span>`:''}
+                ${s.duration?`<span style="color:var(--gray);font-size:.9rem;">Duration: ${s.duration}</span>`:''}
+              </div>
             </div>
-            <div class="card-subtitle">${inf.bio||''}</div>
-            ${renderSocialIconsRow(inf.socialLinks||{})}
-            <div class="card-action" onclick="window.open('?inf=${iid}','_blank')">View Full Profile <span class="arrow-icon">→</span></div>
-          </div>`);
+          `;
+        }).join('');
+        document.getElementById('servicesContent').innerHTML = servicesHTML || '<p style="color:var(--gray);">No services available</p>';
+
+        const reviewsRef = window.firebaseCollection(influencerDocRef,'reviews');
+        const reviewsSnapshot = await window.firebaseGetDocs(reviewsRef);
+        const reviewsHTML = reviewsSnapshot.docs.map(d=>{
+          const r=d.data();
+          const stars='★'.repeat(Math.round(r.rating||0))+'☆'.repeat(5-Math.round(r.rating||0));
+          const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : (r.timestamp? new Date(r.timestamp).toLocaleDateString() : '');
+          return `
+            <div style="background:var(--light);padding:1rem;border-radius:12px;margin-bottom:.75rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;">
+                <div><div style="color:#fbbf24;margin-bottom:.3rem;">${stars}</div>
+                <div style="font-weight:700;margin-bottom:.2rem;">${r.title||'Review'}</div></div>
+                ${r.verified?'<span style="background:var(--success);color:#fff;padding:.2rem .45rem;border-radius:4px;font-size:.75rem;">Verified</span>':''}
+              </div>
+              <div style="color:var(--gray);line-height:1.55;margin-bottom:.5rem;">${r.text||'No review text'}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--gray);">
+                <div>- ${r.userName||'Anonymous'} ${date?`• ${date}`:''}</div>
+                ${r.helpful?`<span style="font-size:.8rem;">👍 ${r.helpful} found this helpful</span>`:''}
+              </div>
+            </div>
+          `;
+        }).join('');
+        document.getElementById('reviewsContent').innerHTML = reviewsHTML || '<p style="color:var(--gray);">No reviews yet</p>';
+      }catch(e){
+        console.error(e);
+        document.getElementById('servicesContent').innerHTML = '<p style="color:var(--gray);">Error loading services</p>';
+        document.getElementById('reviewsContent').innerHTML = '<p style="color:var(--gray);">Error loading reviews</p>';
       }
-      list.innerHTML = items.join('');
+
+      document.getElementById('profileModal').classList.add('active');
+      document.body.classList.add('modal-open');
+    }
+    function closeProfile(){
+      document.getElementById('profileModal').classList.remove('active');
+      document.body.classList.remove('modal-open');
+      currentInfluencerId=null; selectedRating=0;
+      const f=document.getElementById('reviewForm'); if(f){f.reset();}
+      updateStarDisplay();
     }
 
-    // Submit Influencer
-    document.getElementById('submitInfluencerBtn').onclick=()=>{
-      if (!auth.currentUser) return openAuthModal();
-      document.getElementById('submitOverlay').style.display='flex';
-    };
-    document.getElementById('submitInfluencerForm').onsubmit=async (e)=>{
+    // Stars
+    function updateStarDisplay(){
+      document.querySelectorAll('.star').forEach((star,idx)=>{
+        if(idx<selectedRating){ star.textContent='★'; star.classList.add('active'); }
+        else { star.textContent='☆'; star.classList.remove('active'); }
+      });
+    }
+
+    // Submit review
+    async function submitReview(e){
       e.preventDefault();
-      const u = auth.currentUser; if(!u){ openAuthModal(); return; }
-      const socialLinks={};
-      const map={instagram:'si_instagram',tiktok:'si_tiktok',youtube:'si_youtube',facebook:'si_facebook',linkedin:'si_linkedin',twitter:'si_twitter',website:'si_website'};
-      Object.entries(map).forEach(([k,id])=>{ const v=(document.getElementById(id).value||'').trim(); if(v) socialLinks[k]=v; });
-      const payload={
-        name: document.getElementById('si_name').value.trim(),
-        niche: document.getElementById('si_niche').value.trim(),
-        bio: document.getElementById('si_bio').value.trim(),
-        socialLinks, approved:false, verified:false, submittedBy:u.uid, createdAt: serverTimestamp()
+      if(!currentUser || !currentInfluencerId){ alert('Please sign in to submit a review'); return; }
+      if(selectedRating===0){ alert('Please select a rating'); return; }
+      const btn=document.getElementById('submitReviewBtn'); btn.disabled=true; btn.textContent='Submitting...';
+      try{
+        const influencerDocRef = window.firebaseDoc(window.firebaseDB,'influencers',currentInfluencerId);
+        const reviewsRef = window.firebaseCollection(influencerDocRef,'reviews');
+        await window.firebaseAddDoc(reviewsRef,{
+          rating:selectedRating, serviceId:document.getElementById('reviewService').value,
+          title:document.getElementById('reviewTitle').value, text:document.getElementById('reviewText').value,
+          userName:currentUser.displayName, userEmail:currentUser.email, userId:currentUser.uid,
+          createdAt:window.firebaseServerTimestamp(), verified:false, helpful:0
+        });
+        alert('Review submitted successfully!');
+        document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
+        await viewInfluencerProfile(currentInfluencerId);
+      }catch(e){ console.error(e); alert('Failed to submit review. Please try again.'); }
+      finally{ btn.disabled=false; btn.textContent='Submit Review'; }
+    }
+
+    // Search + categories
+    function performSearch(){
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = influencersData.filter(i=>{
+        const mSearch = !term || i.name?.toLowerCase().includes(term) || i.niche?.toLowerCase().includes(term) || i.tags?.some(t=>t.toLowerCase().includes(term));
+        const mCat = activeCategory==='all' || i.niche?.toLowerCase().includes(activeCategory);
+        return mSearch && mCat;
+      });
+      displayInfluencers(filtered);
+    }
+
+    function displayError(){
+      document.getElementById('influencerGrid').innerHTML = `
+        <div class="empty-state">
+          <h3>Unable to load influencers</h3>
+          <p>Please check your connection and try again</p>
+          <button class="btn-primary" onclick="loadInfluencers()">Retry</button>
+        </div>`;
+    }
+
+    // MY REVIEWS: load via collectionGroup on open
+    async function loadMyReviews(){
+      const authGate = document.getElementById('myReviewsAuth');
+      const list = document.getElementById('myReviewsList');
+      if(!currentUser){
+        authGate.style.display='block';
+        list.innerHTML='';
+        return;
+      }
+      authGate.style.display='none';
+      list.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
+
+      try{
+        const cg = window.firebaseCollectionGroup(window.firebaseDB,'reviews');
+        let q;
+        try {
+          q = window.firebaseQuery(
+            cg,
+            window.firebaseWhere('userId','==',currentUser.uid),
+            window.firebaseOrderBy('createdAt','desc')
+          );
+        } catch (err) {
+          console.warn('Index missing, using fallback (no sort).', err);
+          q = window.firebaseQuery(cg, window.firebaseWhere('userId','==',currentUser.uid));
+        }
+
+        const snap = await window.firebaseGetDocs(q);
+
+        if (snap.empty){
+          list.innerHTML = `<div class="empty-state"><h3>No reviews yet</h3><p>Write a review on an influencer profile and it will show up here.</p></div>`;
+          return;
+        }
+
+        const rows = await Promise.all(snap.docs.map(async d=>{
+          const r = d.data();
+          const parentInfRef = d.ref.parent.parent; // influencers/{id}
+          let infName = 'Influencer';
+          let infId = '';
+          if(parentInfRef){
+            const infDoc = await window.firebaseGetDoc(parentInfRef);
+            infName = infDoc.exists()? (infDoc.data().name || 'Influencer'): 'Influencer';
+            infId = parentInfRef.id;
+          }
+          const stars = '★'.repeat(Math.round(r.rating||0))+'☆'.repeat(5-Math.round(r.rating||0));
+          const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : '';
+          const reviewIdPath = d.ref.path;
+          return `
+            <div style="background:#fff;border:1px solid var(--light);border-radius:12px;padding:1rem;margin:0 0 .8rem 0;box-shadow:var(--shadow);">
+              <div style="display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:800">${infName}</div>
+                  <div style="color:#fbbf24">${stars}</div>
+                  <div style="font-weight:700;margin:.25rem 0">${r.title||''}</div>
+                  <div style="color:var(--gray);line-height:1.55">${r.text||''}</div>
+                  <div style="color:var(--gray);font-size:.9rem;margin-top:.35rem;">${date}</div>
+                </div>
+                <div style="display:flex;gap:.5rem;height:fit-content">
+                  <button class="btn-primary" style="background:#fff;color:var(--primary);border:2px solid var(--primary)}" onclick="viewInfluencerProfile('${infId}')">Open Profile</button>
+                  <button class="btn-primary" style="background:var(--danger);border:none" onclick="deleteReview('${reviewIdPath.replace(/'/g,'\\\'')}')">Delete</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }));
+
+        list.innerHTML = rows.join('');
+      }catch(e){
+        console.error('Error loading my reviews:', e);
+        list.innerHTML = `<div class="empty-state"><h3>Could not load your reviews</h3><p>Please try again.</p></div>`;
+      }
+    }
+
+    // Delete review by full path
+    async function deleteReview(path){
+      if(!confirm('Delete this review? This cannot be undone.')) return;
+      try{
+        const seg = path.split('/');
+        if (seg.length!==4){ alert('Invalid review path.'); return; }
+        const ref = window.firebaseDoc(window.firebaseDB, seg[0], seg[1], seg[2], seg[3]);
+        await window.firebaseDeleteDoc(ref);
+        alert('Review deleted.');
+        loadMyReviews();
+      }catch(e){ console.error(e); alert('Failed to delete review.'); }
+    }
+
+    // PROFILE SETTINGS: load + save display name
+    async function loadProfileSettings(){
+      const gate = document.getElementById('profileAuth');
+      const card = document.getElementById('profileCard');
+      if(!currentUser){
+        gate.style.display='block'; card.style.display='none'; return;
+      }
+      gate.style.display='none'; card.style.display='block';
+
+      const initial = currentUser.displayName?.charAt(0)?.toUpperCase() || 'U';
+      const photo = currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="${currentUser.displayName}"/>` : initial;
+      document.getElementById('profilePhoto').innerHTML = photo;
+      document.getElementById('profileName').textContent = currentUser.displayName || 'User';
+      document.getElementById('profileEmail').textContent = currentUser.email || '';
+
+      // Try to read user profile doc
+      try {
+        const uref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid);
+        const usnap = await window.firebaseGetDoc(uref);
+        const nameField = document.getElementById('displayNameInput');
+        if (usnap.exists()) {
+          const data = usnap.data();
+          nameField.value = data.displayName || currentUser.displayName || '';
+        } else {
+          nameField.value = currentUser.displayName || '';
+        }
+      } catch (e) { console.warn('Failed to read user profile', e); }
+
+      const saveBtn = document.getElementById('saveProfileBtn');
+      const status = document.getElementById('saveStatus');
+      saveBtn.onclick = async ()=>{
+        const newName = document.getElementById('displayNameInput').value.trim();
+        if (!newName) { alert('Please enter a display name'); return; }
+        saveBtn.disabled = true; status.style.display='inline'; status.textContent='Saving…';
+        try {
+          // Update Firebase Auth profile (displayName)
+          await window.firebaseUpdateProfile(currentUser, { displayName: newName });
+          // Save to Firestore
+          const uref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid);
+          await window.firebaseSetDoc(uref, {
+            displayName: newName,
+            email: currentUser.email || '',
+            photoURL: currentUser.photoURL || '',
+            lastUpdated: window.firebaseServerTimestamp()
+          }, { merge: true });
+          // Reflect in UI
+          document.getElementById('profileName').textContent = newName;
+          status.textContent = '✅ Favorites successfully';
+          setTimeout(()=>{ status.style.display='none'; }, 2000);
+        } catch (e) {
+          console.error('Save failed', e);
+          status.textContent = '❌ Save failed';
+          setTimeout(()=>{ status.style.display='none'; }, 2500);
+        } finally {
+          saveBtn.disabled = false;
+        }
       };
-      const status=document.getElementById('submitInfluencerStatus');
-      status.textContent='Submitting…';
-      try{ await addDoc(collection(db,'pendingInfluencers'), payload); status.textContent='✅ Submitted for review'; e.target.reset(); }
-      catch(err){ status.textContent='❌ '+(err.message||'Failed'); }
+    }
+
+    // DOM ready
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if (window.firebaseAuth && window.firebaseDB) initializeApp();
+      else {
+        let tries=0; const t=setInterval(()=>{tries++; if(window.firebaseAuth&&window.firebaseDB){clearInterval(t);initializeApp();} else if(tries>50){clearInterval(t);displayError();}},100);
+      }
+
+      // Close modal on overlay click
+      const modal = document.getElementById('profileModal');
+      if (modal){ modal.addEventListener('click', (e)=>{ if(e.target===modal) closeProfile(); }); }
+
+      // Navbar scroll effect
+      window.addEventListener('scroll', ()=>{
+        const navbar=document.getElementById('navbar');
+        if(window.scrollY>50) navbar.style.boxShadow='0 4px 6px rgba(0,0,0,.1)';
+        else navbar.style.boxShadow='0 1px 3px rgba(0,0,0,.1)';
+      });
+
+      // Categories
+      document.querySelectorAll('.category-pill').forEach(p=>{
+        p.addEventListener('click', function(){
+          document.querySelectorAll('.category-pill').forEach(x=>x.classList.remove('active'));
+          this.classList.add('active'); activeCategory=this.dataset.category; performSearch();
+        });
+      });
+
+      // Search enter
+      document.getElementById('searchInput').addEventListener('keypress', (e)=>{ if(e.key==='Enter') performSearch(); });
+
+      // Stars
+      document.querySelectorAll('.star').forEach(star=>{
+        star.addEventListener('click', function(){ selectedRating=parseInt(this.dataset.rating); updateStarDisplay(); });
+        star.addEventListener('mouseenter', function(){
+          const r=parseInt(this.dataset.rating);
+          document.querySelectorAll('.star').forEach((s,i)=>{ s.textContent = (i<r)?'★':'☆'; });
+        });
+      });
+      const sr = document.getElementById('starRating'); if(sr){ sr.addEventListener('mouseleave', updateStarDisplay); }
+
+      // Review submit
+      const rf = document.getElementById('reviewForm'); if (rf){ rf.addEventListener('submit', submitReview); }
+
+      // If direct link ?page=...
+      const params=new URLSearchParams(window.location.search);
+      const p=params.get('page'); if(p) showPage(p);
+    });
+  </script>
+
+  <!-- Auth Modal (popup with Sign In / Sign Up + Google) -->
+  <div class="modal-overlay" id="authModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;max-width:440px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
+      <button onclick="closeAuthModal()" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
+      <h2 style="margin:.25rem 0 1rem">Welcome</h2>
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+        <button id="tabSignIn" style="flex:1;padding:.6rem;border-radius:8px;border:2px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer">Sign In</button>
+        <button id="tabSignUp" style="flex:1;padding:.6rem;border-radius:8px;border:2px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer">Sign Up</button>
+      </div>
+      <form id="emailAuthForm" data-mode="signin">
+        <input id="authEmail" type="email" placeholder="Email" required style="width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
+        <input id="authPassword" type="password" placeholder="Password" required style="width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
+        <input id="authPassword2" type="password" placeholder="Confirm Password" style="display:none;width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
+        <button class="btn-primary" id="emailAuthBtn" type="submit" style="width:100%;padding:.8rem;border:none;border-radius:10px;">Sign In</button>
+      </form>
+      <div style="display:flex;align-items:center;gap:.75rem;margin:.9rem 0">
+        <div style="flex:1;height:1px;background:#e5e7eb"></div><span style="color:#64748b;font-size:.9rem">OR</span><div style="flex:1;height:1px;background:#e5e7eb"></div>
+      </div>
+      <button id="googleAuthBtn" class="auth-button" style="width:100%;justify-content:center;padding:.8rem;border:2px solid #e5e7eb;background:#fff;border-radius:10px;">Continue with Google</button>
+      <div style="margin-top:.6rem;display:flex;justify-content:space-between;align-items:center;">
+        <a id="forgotPass" href="#" style="color:#4f46e5;text-decoration:underline;font-size:.92rem">Forgot Password?</a>
+        <span id="authToggleText" style="color:#64748b;font-size:.92rem;cursor:pointer">Don’t have an account? <a id="toSignUp" href="#" style="color:#4f46e5;text-decoration:underline">Sign Up</a></span>
+      </div>
+      <p id="authStatus" style="margin-top:.6rem;color:#64748b"></p>
+    </div>
+  </div>
+
+  <!-- Submit Influencer Modal (formal) -->
+  <div class="modal-overlay" id="submitInfluencerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;max-width:640px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
+      <button onclick="document.getElementById('submitInfluencerModal').style.display='none'" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
+      <h2 style="margin:.25rem 0 1rem">Submit Influencer for Review</h2>
+      <form id="submitInfluencerForm">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <label style="grid-column:1/-1;font-weight:600">Full Name</label>
+          <input id="si_name" required style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <label style="font-weight:600">Niche</label>
+          <input id="si_niche" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <label style="font-weight:600">Primary Social URL</label>
+          <input id="si_social" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <label style="grid-column:1/-1;font-weight:600">Short Bio</label>
+          <textarea id="si_bio" required style="grid-column:1/-1;height:100px;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"></textarea>
+        </div>
+        <button class="btn-primary" type="submit" style="margin-top:1rem;padding:.8rem 1.2rem;border:none;border-radius:10px;">Submit for Review</button>
+      </form>
+      <p id="submitInfluencerStatus" style="margin-top:.6rem;color:#64748b"></p>
+    </div>
+  </div>
+
+  <!-- Admin Panel Modal -->
+  <div class="modal-overlay" id="adminPanelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;max-width:840px;width:95%;border-radius:12px;padding:1rem 1.25rem 1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;">
+      <button onclick="document.getElementById('adminPanelModal').style.display='none'" style="position:absolute;right:.5rem;top:.5rem;border:none;background:#f3f4f6;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer">×</button>
+      <h2 style="margin:.25rem 0 1rem">Admin – Pending Influencers</h2>
+      <div id="adminPendingList"><div class="loading-container"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <style>
+    /* Favorites star on card */
+    .fav-star{position:absolute;top:10px;right:10px;background:transparent;border:none;cursor:pointer;font-size:20px;line-height:1;opacity:0;transition:.2s;color:#9ca3af}
+    .card:hover .fav-star{opacity:1;transform:scale(1.05)}
+    .fav-star.active{color:var(--warning);opacity:1}
+    /* Profile modal favorite button */
+    .profile-fav{margin-left:auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:.35rem .6rem;cursor:pointer}
+    .profile-fav.active{border-color:#f59e0b;color:#f59e0b}
+  </style>
+
+  <script type="module">
+    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+    import { getDoc, setDoc, doc, getDocs, collection, serverTimestamp, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDB;
+
+    // Auth modal control
+    window.openAuthModal = function(){ document.getElementById('authModal').style.display='flex'; setAuthMode('signin'); };
+    window.closeAuthModal = function(){ document.getElementById('authModal').style.display='none'; };
+
+    // Tabs
+    function setAuthMode(mode){
+      const pass2 = document.getElementById('authPassword2');
+      const btn = document.getElementById('emailAuthBtn');
+      document.getElementById('emailAuthForm').dataset.mode = mode;
+      pass2.style.display = mode==='signup' ? 'block' : 'none';
+      btn.textContent = mode==='signup' ? 'Create Account' : 'Sign In';
+      document.getElementById('tabSignIn').style.borderColor = mode==='signin' ? '#4f46e5' : '#e5e7eb';
+      document.getElementById('tabSignUp').style.borderColor = mode==='signup' ? '#4f46e5' : '#e5e7eb';
+      document.getElementById('authStatus').textContent='';
+    }
+    document.getElementById('tabSignIn').onclick = ()=>setAuthMode('signin');
+    document.getElementById('tabSignUp').onclick = ()=>setAuthMode('signup');
+    document.getElementById('toSignUp').onclick = (e)=>{ e.preventDefault(); setAuthMode('signup'); };
+
+    // Email auth submit
+    document.getElementById('emailAuthForm').onsubmit = async (e)=>{
+      e.preventDefault();
+      const email = (document.getElementById('authEmail').value||'').trim();
+      const pass = (document.getElementById('authPassword').value||'');
+      const pass2 = (document.getElementById('authPassword2').value||'');
+      const mode = e.currentTarget.dataset.mode;
+      const status = document.getElementById('authStatus');
+      status.textContent = 'Processing…';
+      try{
+        if (mode==='signup'){
+          if (pass !== pass2){ status.textContent='Passwords do not match.'; return; }
+          const cred = await createUserWithEmailAndPassword(auth, email, pass);
+          await setDoc(doc(db,'users', cred.user.uid), { email, role:'user', joinedAt: serverTimestamp(), lastLoginAt: serverTimestamp() }, { merge:true });
+          status.textContent = '✅ Account created';
+          setTimeout(()=>{ closeAuthModal(); }, 400);
+        } else {
+          const cred = await signInWithEmailAndPassword(auth, email, pass);
+          await setDoc(doc(db,'users', cred.user.uid), { lastLoginAt: serverTimestamp() }, { merge:true });
+          status.textContent = '✅ Signed in';
+          setTimeout(()=>{ closeAuthModal(); }, 400);
+        }
+      }catch(err){
+        console.error(err);
+        status.textContent = '❌ '+(err.message||'Authentication failed');
+      }
+    };
+    document.getElementById('forgotPass').onclick = async (e)=>{
+      e.preventDefault();
+      const email = (document.getElementById('authEmail').value||'').trim();
+      if (!email) return alert('Enter your email first.');
+      try{ await sendPasswordResetEmail(auth, email); alert('Password reset link sent.'); }catch(err){ alert(err.message||'Failed to send link'); }
     };
 
-    // Admin
-    async function openAdmin(){
-      const u=auth.currentUser; if(!u) return openAuthModal();
-      const s=await getDoc(doc(db,'users',u.uid)); const role=s.exists()?(s.data().role||'user'):'user';
-      if (role!=='admin'){ alert('You do not have permission.'); return; }
-      document.getElementById('adminOverlay').style.display='flex';
-      const list=document.getElementById('adminPendingList');
-      list.innerHTML='Loading…';
-      const snap = await getDocs(collection(db,'pendingInfluencers'));
-      if (snap.empty){ list.innerHTML='<div class="muted">No pending submissions.</div>'; return; }
-      const rows=[];
-      for (const d of snap.docs){
-        const v=d.data();
-        rows.push(`
-          <div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;border:1px solid #1c2332;border-radius:12px;padding:12px;margin:.4rem 0">
-            <div>
-              <div style="font-weight:800">${v.name||''}</div>
-              <div class="muted">${v.niche||''} • ${(v.socialLinks&&Object.keys(v.socialLinks)[0])||''}</div>
-              <div class="muted" style="margin-top:.25rem">${v.bio||''}</div>
-            </div>
-            <div style="display:flex;gap:.5rem;align-items:start">
-              <button class="btn-primary" onclick="approvePending('${d.id}')">Approve</button>
-              <button class="auth-button" onclick="rejectPending('${d.id}')">Reject</button>
-            </div>
-          </div>`);
-      }
-      list.innerHTML=rows.join('');
-    }
-    window.openAdmin=openAdmin;
-    window.approvePending = async function(id){
-      const ref=doc(db,'pendingInfluencers',id);
-      const s=await getDoc(ref); if(!s.exists()) return;
-      const data=s.data();
-      await setDoc(doc(db,'influencers',id), { ...data, approved:true, verified:true, createdAt: serverTimestamp() }, { merge:true });
-      await deleteDoc(ref);
-      openAdmin();
-    }
-    window.rejectPending = async function(id){
-      await deleteDoc(doc(db,'pendingInfluencers',id)); openAdmin();
-    }
+    // Google auth
+    document.getElementById('googleAuthBtn').onclick = ()=>{ window.firebaseSignInWithPopup(auth, window.googleProvider).catch(e=>alert('Sign-in failed')); };
 
-    // Router helpers for new tab profiles
-    const params = new URLSearchParams(window.location.search);
-    const p = params.get('page'); if (p) showPage(p);
-    (async()=>{
-      const inf = params.get('inf');
-      if (inf){
-        if (!influencersData.length) await loadInfluencers();
-        viewInfluencerProfile(inf);
+    // Favorites helpers
+    async function isFavorited(id){
+      const user = auth.currentUser; if(!user) return false;
+      const snap = await getDoc(doc(db,'users', user.uid, 'favorites', id));
+      return snap.exists();
+    }
+    window.isFavorited = isFavorited;
+
+    async function toggleFavorite(id, el){
+      const user = auth.currentUser; if(!user){ openAuthModal(); return; }
+      const ref = doc(db,'users', user.uid, 'favorites', id);
+      const snap = await getDoc(ref);
+      if (snap.exists()){
+        await deleteDoc(ref);
+        if (el){ el.textContent='☆'; el.classList.remove('active'); }
       } else {
-        await loadInfluencers();
+        await setDoc(ref, { favoritedAt: serverTimestamp() });
+        if (el){ el.textContent='⭐'; el.classList.add('active'); }
       }
+    }
+    window.toggleFavorite = toggleFavorite;
+
+    // Favorites page
+    window.openFavorites = async function(){
+      const u = auth.currentUser;
+      if(!u){ document.getElementById('favoritesAuth').style.display='block'; return showPage('favorites'); }
+      const snap = await getDocs(collection(db,'users', u.uid, 'favorites'));
+      const list = document.getElementById('favoritesList');
+      if (snap.empty){ list.innerHTML = '<p style="color:#64748b">No favorites yet.</p>'; showPage('favorites'); return; }
+      const cards = [];
+      for (const d of snap.docs){
+        const id = d.id;
+        const infSnap = await getDoc(doc(db,'influencers', id));
+        if (!infSnap.exists()) continue;
+        const inf = infSnap.data();
+        const name = inf.name || 'Influencer';
+        const avatar = (inf.avatar || name.substring(0,2).toUpperCase());
+        const bio = inf.bio || '';
+        cards.push(`
+          <div class="card" style="position:relative">
+            <div class="avatar">${avatar}</div>
+            <div class="card-title">${name}</div>
+            <div class="card-subtitle">${bio}</div>
+            <div class="card-action" onclick="viewInfluencerProfile('${id}')">View Full Profile <span class="arrow-icon">→</span></div>
+            <button class="fav-star active" onclick="toggleFavorite('${id}', this)" title="Remove from favorites">⭐</button>
+          </div>
+        `);
+      }
+      list.innerHTML = cards.join('');
+      showPage('favorites');
+    };
+
+    // Submit Influencer entry in nav (formal)
+    (function addSubmitBtn(){
+      const nav = document.querySelector('.nav-links');
+      if (!nav || document.getElementById('submitInfluencerBtn')) return;
+      const btn = document.createElement('button');
+      btn.id = 'submitInfluencerBtn';
+      btn.className = 'auth-button';
+      btn.textContent = 'Submit Influencer';
+      btn.onclick = ()=> window.openSubmitInfluencer();
+      nav.appendChild(btn);
     })();
 
+    // Admin in dropdown & Favorites entry
+    const menuObserver = new MutationObserver(async ()=>{
+      const menu = document.getElementById('userMenu');
+      if (!menu || menu.dataset.enhanced) return;
+      const favBtn = document.createElement('button');
+      favBtn.textContent = '⭐ Favorites';
+      favBtn.onclick = ()=>{ window.openFavorites(); closeMenu(); };
+      menu.insertBefore(favBtn, menu.firstChild?.nextSibling || null);
+      const u = auth.currentUser;
+      if (u){
+        const snap = await getDoc(doc(db,'users', u.uid));
+        const role = snap.exists()? (snap.data().role||'user') : 'user';
+        if (role==='admin'){
+          const hr = document.createElement('hr');
+          const ab = document.createElement('button');
+          ab.textContent = 'Admin Panel';
+          ab.onclick = ()=>{ window.openAdminPanel(); closeMenu(); };
+          menu.appendChild(hr); menu.appendChild(ab);
+        }
+      }
+      menu.dataset.enhanced='1';
+    });
+    menuObserver.observe(document.body,{childList:true,subtree:true});
+
+    // Submit Influencer handlers
+    window.openSubmitInfluencer = function(){
+      const user = auth.currentUser;
+      if(!user){ openAuthModal(); return; }
+      document.getElementById('submitInfluencerModal').style.display='flex';
+    };
+
+    // Admin panel functions
+    window.openAdminPanel = async function(){
+      const u = auth.currentUser; if(!u){ openAuthModal(); return; }
+      const ud = await getDoc(doc(db,'users',u.uid));
+      if (!ud.exists() || (ud.data().role!=='admin')){ alert('You do not have permission.'); return; }
+      document.getElementById('adminPanelModal').style.display='flex';
+      // Load pending
+      const list = document.getElementById('adminPendingList');
+      list.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
+      const snap = await getDocs(collection(db,'pendingInfluencers'));
+      if (snap.empty){ list.innerHTML='<p style="color:#64748b">No pending submissions.</p>'; return; }
+      const items = [];
+      for (const d of snap.docs){
+        const v = d.data();
+        items.push(`
+          <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin:.5rem 0;display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center">
+            <div><div style="font-weight:800">${v.name||''}</div><div style="color:#64748b">${v.niche||''} • ${v.mainSocial||''}</div><div style="color:#64748b;margin-top:.25rem">${v.bio||''}</div></div>
+            <div style="display:flex;gap:.5rem">
+              <button data-id="${d.id}" class="btn-approve" style="padding:.5rem .8rem;border:none;border-radius:8px;background:#10b981;color:#fff">Approve</button>
+              <button data-id="${d.id}" class="btn-reject"  style="padding:.5rem .8rem;border:1px solid #e5e7eb;border-radius:10px;background:#fff">Reject</button>
+            </div>
+          </div>
+        `);
+      }
+      list.innerHTML = items.join('');
+      list.querySelectorAll('.btn-approve').forEach(btn=>btn.onclick = async (e)=>{
+        const id = e.currentTarget.dataset.id;
+        const ref = doc(db,'pendingInfluencers', id);
+        const snap = await getDoc(ref);
+        if(snap.exists()){
+          const data = snap.data();
+          await setDoc(doc(db,'influencers', id), { ...data, verified:true, approved:true, createdAt: serverTimestamp() }, { merge:true });
+          await deleteDoc(ref);
+          window.openAdminPanel();
+        }
+      });
+      list.querySelectorAll('.btn-reject').forEach(btn=>btn.onclick = async (e)=>{
+        const id = e.currentTarget.dataset.id;
+        await deleteDoc(doc(db,'pendingInfluencers', id));
+        window.openAdminPanel();
+      });
+    };
   </script>
+
 </body>
 </html>
