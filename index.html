@@ -446,8 +446,7 @@
                 photoURL: user.photoURL || '',
                 lastUpdated: window.firebaseServerTimestamp()
               });
-            }
-          } catch (e) { console.warn('User profile bootstrap failed', e); }
+} catch (e) { console.warn('User profile bootstrap failed', e); }
         }
 
         const params = new URLSearchParams(window.location.search);
@@ -519,8 +518,7 @@
           if (data.stats){
             totalReviews += data.stats.reviewCount || 0;
             if (data.stats.rating){ totalRating += data.stats.rating; ratingCount++; }
-          }
-        }
+}
         document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
         document.getElementById('avgRating').textContent = ratingCount>0 ? `${(totalRating/ratingCount).toFixed(1)} Average Rating` : '4.5 Average Rating';
         displayInfluencers(influencersData);
@@ -598,7 +596,6 @@
       const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
       document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?'':''}`;
       document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
-      if(mFav){ mFav.onclick = (e)=>{ e.stopPropagation(); /* removed */ toggleFavorite(influencer.id, mFav); }; if(window.userFavorites[influencer.id]) mFav.classList.add('active'); else mFav.classList.remove('active'); }
 
       const socialLinksHTML = influencer.socialLinks ? Object.entries(influencer.socialLinks).map(([p,url])=>`<a href="${url}" target="_blank" class="social-link" title="${p}">${getSocialIcon(p)}</a>`).join('') : '';
       document.getElementById('socialLinks').innerHTML = socialLinksHTML;
@@ -792,8 +789,7 @@
       }catch(e){
         console.error('Error loading my reviews:', e);
         list.innerHTML = `<div class="empty-state"><h3>Could not load your reviews</h3><p>Please try again.</p></div>`;
-      }
-    }
+}
 
     // Delete review by full path
     async function deleteReview(path){
@@ -833,8 +829,7 @@
           nameField.value = data.displayName || currentUser.displayName || '';
         } else {
           nameField.value = currentUser.displayName || '';
-        }
-      } catch (e) { console.warn('Failed to read user profile', e); }
+} catch (e) { console.warn('Failed to read user profile', e); }
 
       const saveBtn = document.getElementById('saveProfileBtn');
       const status = document.getElementById('saveStatus');
@@ -863,8 +858,7 @@
           setTimeout(()=>{ status.style.display='none'; }, 2500);
         } finally {
           saveBtn.disabled = false;
-        }
-      };
+};
     }
 
     // DOM ready
@@ -1032,10 +1026,8 @@
             link.textContent='Use Email';
             link.onclick=(e)=>{ e.preventDefault(); openEmailAuth(); };
             btn.parentElement.appendChild(link);
-          }
-        }, 200);
-      }
-    });
+}, 200);
+});
 
     // Observe menu creation to append extra items
     const observer = new MutationObserver(async ()=>{
@@ -1076,8 +1068,7 @@
       } catch (err){
         console.error(err);
         status.textContent = '❌ '+(err.message||'Auth failed');
-      }
-    };
+};
     // Google sign-in inside modal
     const gbtn = document.getElementById('googleAuthBtn');
     if (gbtn && !gbtn.dataset.bound){
@@ -1092,10 +1083,8 @@
         }catch(err){
           console.error(err);
           status.textContent = '❌ '+(err.message||'Google sign-in failed');
-        }
-      };
+};
     }
-
 
     // --- Submit Influencer ---
     function openSubmitInfluencer(){
@@ -1135,8 +1124,7 @@
         (e.target).reset();
       }catch(err){
         console.error(err); status.textContent = '❌ '+(err.message||'Failed');
-      }
-    };
+};
 
     // --- Admin Panel ---
     async function openAdminPanel(){
@@ -1178,8 +1166,7 @@
           await setDoc(doc(db,'influencers', id), { ...data, verified:true, approved:true, createdAt: serverTimestamp() }, { merge:true });
           await deleteDoc(ref);
           loadPending();
-        }
-      });
+});
       list.querySelectorAll('.btn-reject').forEach(btn=>btn.onclick = async (e)=>{
         const id = e.currentTarget.dataset.id;
         await deleteDoc(doc(db,'pendingInfluencers', id));
