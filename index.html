@@ -116,16 +116,13 @@
     .category-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
     /* Cards */
-    .fav-star{position:absolute;top:10px;right:10px;font-size:22px;cursor:pointer;user-select:none;color:#e5e7eb;}
-    .fav-star.active{color:#fbbf24;}
-
-    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1.5rem;margin-bottom:3rem}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1.5rem;margin-bottom:3rem}
     .influencer-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);transition:.25s;cursor:pointer;position:relative}
     .influencer-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
     .card-header{padding:1.25rem;background:linear-gradient(135deg,#f0f9ff 0%,#e0e7ff 50%,#fce7f3 100%)}
     .card-profile{display:flex;gap:1rem;align-items:flex-start}
     .profile-image{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--accent));position:relative;box-shadow:0 6px 14px rgba(79,70,229,.28)}
-    .verified-badge{position:absolute;top:-5px;right:-5px;background:var(--success);color:#fff;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;border:3px solid #fff}
+    
     .influencer-name{font-size:1.125rem;font-weight:700;margin-bottom:.15rem}
     .influencer-niche{display:inline-block;background:var(--primary);color:#fff;padding:.2rem .5rem;border-radius:6px;font-size:.72rem;font-weight:700;margin-bottom:.35rem}
     .follower-count{font-size:.9rem;color:var(--gray);display:flex;gap:.4rem;align-items:center}
@@ -311,7 +308,7 @@
     <div id="aboutPage" class="page-section">
       <h1>About TrustReview</h1>
       <p style="margin:.5rem 0 1rem;color:var(--gray);max-width:820px;">Our mission is to make the creator economy transparent. We elevate authentic educators and protect buyers from misinformation and scams through verified reviews, signals (verified purchases, longevity, refund stats), and active moderation.</p>
-      <p style="margin:0 0 1.2rem;color:var(--gray);max-width:820px;">Profiles with <strong>Verified ✓</strong> are approved by admins and flagged for consistent, positive reviewer signals. We never sell placements or accept undisclosed sponsorships.</p>
+      <p style="margin:0 0 1.2rem;color:var(--gray);max-width:820px;">We never sell placements or accept undisclosed sponsorships.</p>
       <p style="margin: .5rem 0 1rem; color: var(--gray); max-width: 820px;">
         TrustReview is a community-driven platform where real customers review and verify influencers,
         coaches, and online courses. Our goal is to bring <strong>transparency</strong> to the creator economy by
@@ -339,7 +336,7 @@
   <div class="modal-overlay" id="profileModal">
     <div class="profile-modal">
       <div class="modal-header">
-        <div id="modalFav" class="fav-star" style="right:56px;top:16px;position:absolute;">☆</div>
+        
         <button class="close-modal" onclick="closeProfile()">×</button>
         <div class="modal-profile">
           <div class="modal-profile-image" id="modalAvatar">JD</div>
@@ -408,35 +405,7 @@
     let currentInfluencerId = null;
     let selectedRating = 0;
 
-    // Favorites store
-    window.userFavorites = {};
-    async function loadFavorites(){
-      if(!currentUser) { window.userFavorites = {}; return; }
-      try{
-        const favCol = window.firebaseCollection(window.firebaseDB,'users', currentUser.uid, 'favorites');
-        const snap = await window.firebaseGetDocs(favCol);
-        const map = {};
-        snap.forEach(d=>{ map[d.id]=true; });
-        window.userFavorites = map;
-      }catch(e){ console.warn('favorites load failed', e); }
-    }
-    async function toggleFavorite(infId, el){
-      if(!currentUser){ alert('Please sign in'); return; }
-      const ref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid, 'favorites', infId);
-      try{
-        if(window.userFavorites[infId]){
-          await window.firebaseDeleteDoc(ref);
-          delete window.userFavorites[infId];
-          if(el) el.classList.remove('active');
-        }else{
-          await window.firebaseSetDoc(ref, { addedAt: window.firebaseServerTimestamp() }, { merge:true });
-          window.userFavorites[infId] = true;
-          if(el) el.classList.add('active');
-        }
-      }catch(e){ console.error('fav toggle failed', e); }
-    }
-
-
+    
     // Page navigation
     function showPage(pageName) {
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -463,7 +432,6 @@
         currentUser = user;
         updateAuthUI(user);
         updateReviewForm(user);
-        await loadFavorites();
         if (!influencersData.length) await loadInfluencers(); else displayInfluencers(influencersData);
 
         // Auto-create users/{uid} profile doc on sign in
@@ -569,82 +537,55 @@
       grid.innerHTML = influencers.map(createInfluencerCard).join('');
     }
 
-	function createInfluencerCard(influencer) {
-	  const isFav = window.currentUser && window.userFavorites && window.userFavorites[influencer.id];
-	  const starCls = isFav ? 'active' : '';
+    function createInfluencerCard(influencer) {
+  // Safely derive stats
+  const stats = influencer.stats || {};
+  const rating = (stats.rating || 4.5).toFixed(1);
+  const revCount = stats.reviewCount || 0;
+  const recommend = stats.recommendPercent || 0;
+  const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
 
-	  // --- FIX: safely pull stats from influencer object ---
-	  const stats = influencer.stats || {};
-	  const rating = (stats.rating || 4.5).toFixed(1);
-	  const revCount = stats.reviewCount || 0;
-	  const recommend = stats.recommendPercent || 0;
-	  const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
-
-	  return `
-		<div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
-		  <div class="fav-star ${isFav ? 'active' : ''}" title="Save" 
-			   onclick="event.stopPropagation(); toggleFavorite('${influencer.id}', this)">☆</div>
-		  <div class="card-header">
-			<div class="card-profile">
-			  <div class="profile-image">
-				${influencer.avatar || (influencer.name?.substring(0,2).toUpperCase()) || 'IN'}
-				${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
-			  </div>
-			  <div class="profile-info">
-				<div class="influencer-name">${influencer.name || 'Unknown'}</div>
-				<div class="influencer-niche">${influencer.niche || 'General'}</div>
-				<div class="follower-count">
-				  ⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}
-				</div>
-			  </div>
-			</div>
-		  </div>
-		  <div class="stats-section">
-			<div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
-			<div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
-			<div class="stat-item"><div class="stat-value">${recommend}%</div><div class="stat-label">Recommend</div></div>
-		  </div>
-		  <div class="services-preview">
-			<div class="services-title">Popular Services</div>
-			<div class="service-tags">
-			  ${(influencer.services || [])
-				.slice(0, 3)
-				.map(
-				  s =>
-					`<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${
-					  s.priceUnit ? '/' + s.priceUnit : ''
-					}</span></div>`
-				)
-				.join('')}
-			</div>
-		  </div>
-		  <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">
-			View Full Profile <span class="arrow-icon">→</span>
-		  </a>
-		</div>
-	  `;
-	}
-
+  return `
+    <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+      <div class="card-header">
+        <div class="card-profile">
+          <div class="profile-image">
+            ${influencer.avatar || (influencer.name?.substring(0,2).toUpperCase()) || 'IN'}
+          </div>
+          <div class="profile-info">
+            <div class="influencer-name">${influencer.name || 'Unknown'}</div>
+            <div class="influencer-niche">${influencer.niche || 'General'}</div>
+            <div class="follower-count">
+              ⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-section">
+        <div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
+        <div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
+        <div class="stat-item"><div class="stat-value">${recommend}%</div><div class="stat-label">Recommend</div></div>
+      </div>
+      <div class="services-preview">
+        <div class="services-title">Popular Services</div>
+        <div class="service-tags">
+          ${(influencer.services || []).slice(0,3).map(s =>
+            `<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${s.priceUnit ? '/' + s.priceUnit : ''}</span></div>`
+          ).join('')}
+        </div>
+      </div>
+      <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">
+        View Full Profile <span class="arrow-icon">→</span>
+      </a>
+    </div>
+  `;
+}
 
     function getTotalFollowers(socialPlatforms){ if(!socialPlatforms) return 0; return Object.values(socialPlatforms).reduce((s,c)=>s+(c||0),0) }
     function formatFollowers(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); }
     function formatNumber(n){ if(n>=1e3) return (n/1e3).toFixed(1)+'k'; return n.toString(); }
     
-	function getSocialIcon(p){
-	  const k = (p||'').toLowerCase();
-	  const c = '#64748b';
-	  const svg = {
-		instagram: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg>`,
-		tiktok: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 3h3a5 5 0 0 0 5 5v3a8 8 0 1 1-8-8z"/></svg>`,
-		youtube: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1C4.5 20.5 12 20.5 12 20.5s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/></svg>`,
-		twitter: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 8v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83z"/></svg>`,
-		facebook:`<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.2 3-3.2.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.2l-.3 3h-1.9v7A10 10 0 0 0 22 12"/></svg>`,
-		linkedin:`<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.2 2.5-2.4 5.1-2.4 5.5 0 6.5 3.6 6.5 8.2V24h-5v-7c0-1.7 0-3.9-2.4-3.9s-2.7 1.8-2.7 3.8V24h-5V8z"/></svg>`,
-		website: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`
-	  };
-	  return svg[k] || svg['website'];
-	}
-
+    
 
     // Profile modal logic
     async function viewInfluencerProfile(influencerId){
@@ -655,9 +596,9 @@
       document.getElementById('modalAvatar').textContent = influencer.avatar || influencer.name?.substring(0,2).toUpperCase() || 'IN';
       document.getElementById('modalName').textContent = influencer.name || 'Unknown Influencer';
       const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
-      document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?' • Verified ✓':''}`;
+      document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?'':''}`;
       document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
-      const mFav = document.getElementById('modalFav'); if(mFav){ mFav.onclick = (e)=>{ e.stopPropagation(); toggleFavorite(influencer.id, mFav); }; if(window.userFavorites[influencer.id]) mFav.classList.add('active'); else mFav.classList.remove('active'); }
+      if(mFav){ mFav.onclick = (e)=>{ e.stopPropagation(); /* removed */ toggleFavorite(influencer.id, mFav); }; if(window.userFavorites[influencer.id]) mFav.classList.add('active'); else mFav.classList.remove('active'); }
 
       const socialLinksHTML = influencer.socialLinks ? Object.entries(influencer.socialLinks).map(([p,url])=>`<a href="${url}" target="_blank" class="social-link" title="${p}">${getSocialIcon(p)}</a>`).join('') : '';
       document.getElementById('socialLinks').innerHTML = socialLinksHTML;
@@ -1029,15 +970,7 @@
       <div id="adminPendingList"><div class="loading-container"><div class="spinner"></div></div></div>
     </div>
   </div>
-
-  <!-- Saved Influencers Page -->
-  <div id="savedPage" class="page-section">
-    <h1 style="margin-bottom:1rem;">Saved Influencers</h1>
-    <div id="savedAuth" class="auth-prompt" style="display:none">Please sign in to view your saved influencers.</div>
-    <div id="savedList"><div class="loading-container"><div class="spinner"></div></div></div>
-  </div>
-
-  <script type="module">
+<script type="module">
     import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
     import { getDoc, setDoc, doc, getDocs, collection, serverTimestamp, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -1052,12 +985,22 @@
       }catch(e){ console.warn('role fetch failed', e); return 'user'; }
     }
     function ensureMenuExtras(role){
-      const menu = document.getElementById('userMenu');
-      if (!menu || menu.dataset.enhanced) return;
-      // Insert extra items
-      const btnSaved = document.createElement('button');
-      btnSaved.textContent = '💾 Saved Influencers';
-      btnSaved.onclick = ()=>{ openSaved(); closeMenu(); };
+  const menu = document.getElementById('userMenu');
+  if (!menu || menu.dataset.enhanced) return;
+  const btnSubmit = document.createElement('button');
+  btnSubmit.textContent = '➕ Submit Influencer';
+  btnSubmit.onclick = ()=>{ openSubmitInfluencer(); closeMenu(); };
+  menu.insertBefore(btnSubmit, menu.children[1]);
+  if (role === 'admin'){
+    const hr = document.createElement('hr');
+    const btnAdmin = document.createElement('button');
+    btnAdmin.textContent = '🧑‍💼 Admin Panel';
+    btnAdmin.onclick = ()=>{ openAdminPanel(); closeMenu(); };
+    menu.insertBefore(hr, menu.children[2]);
+    menu.insertBefore(btnAdmin, menu.children[3]);
+  }
+  menu.dataset.enhanced = '1';
+};
       const btnSubmit = document.createElement('button');
       btnSubmit.textContent = '➕ Submit Influencer';
       btnSubmit.onclick = ()=>{ openSubmitInfluencer(); closeMenu(); };
