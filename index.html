@@ -569,40 +569,62 @@
       grid.innerHTML = influencers.map(createInfluencerCard).join('');
     }
 
-    function createInfluencerCard(influencer){
-      const isFav = window.currentUser && window.userFavorites && window.userFavorites[influencer.id];
-      const starCls = isFav ? 'star-active' : '';
+	function createInfluencerCard(influencer) {
+	  const isFav = window.currentUser && window.userFavorites && window.userFavorites[influencer.id];
+	  const starCls = isFav ? 'active' : '';
+
+	  // --- FIX: safely pull stats from influencer object ---
+	  const stats = influencer.stats || {};
+	  const rating = (stats.rating || 4.5).toFixed(1);
+	  const revCount = stats.reviewCount || 0;
+	  const recommend = stats.recommendPercent || 0;
+	  const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
+
 	  return `
-        <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
-          <div class="fav-star ${isFav?'active':''}" title="Save" onclick="event.stopPropagation(); toggleFavorite('${influencer.id}', this)">☆</div>
-          <div class="card-header">
-            <div class="card-profile">
-              <div class="profile-image">
-                ${influencer.avatar || (influencer.name?.substring(0,2).toUpperCase()) || 'IN'}
-                ${influencer.verified?'<div class="verified-badge">✓</div>':''}
-              </div>
-              <div class="profile-info">
-                <div class="influencer-name">${influencer.name||'Unknown'}</div>
-                <div class="influencer-niche">${influencer.niche||'General'}</div>
-                <div class="follower-count">⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}</div>
-              </div>
-            </div>
-          </div>
-          <div class="stats-section">
-            <div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
-            <div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
-            <div class="stat-item"><div class="stat-value">${stats.recommendPercent||0}%</div><div class="stat-label">Recommend</div></div>
-          </div>
-          <div class="services-preview">
-            <div class="services-title">Popular Services</div>
-            <div class="service-tags">
-              ${(influencer.services||[]).slice(0,3).map(s=>`<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${s.priceUnit?'/'+s.priceUnit:''}</span></div>`).join('')}
-            </div>
-          </div>
-          <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">View Full Profile <span class="arrow-icon">→</span></a>
-        </div>
-      `;
-    }
+		<div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+		  <div class="fav-star ${isFav ? 'active' : ''}" title="Save" 
+			   onclick="event.stopPropagation(); toggleFavorite('${influencer.id}', this)">☆</div>
+		  <div class="card-header">
+			<div class="card-profile">
+			  <div class="profile-image">
+				${influencer.avatar || (influencer.name?.substring(0,2).toUpperCase()) || 'IN'}
+				${influencer.verified ? '<div class="verified-badge">✓</div>' : ''}
+			  </div>
+			  <div class="profile-info">
+				<div class="influencer-name">${influencer.name || 'Unknown'}</div>
+				<div class="influencer-niche">${influencer.niche || 'General'}</div>
+				<div class="follower-count">
+				  ⭐ ${rating} &nbsp;•&nbsp; ${revCount} Reviews &nbsp;•&nbsp; 👥 ${followers}
+				</div>
+			  </div>
+			</div>
+		  </div>
+		  <div class="stats-section">
+			<div class="stat-item"><div class="stat-value">${rating}</div><div class="stat-label">Rating</div></div>
+			<div class="stat-item"><div class="stat-value">${revCount}</div><div class="stat-label">Reviews</div></div>
+			<div class="stat-item"><div class="stat-value">${recommend}%</div><div class="stat-label">Recommend</div></div>
+		  </div>
+		  <div class="services-preview">
+			<div class="services-title">Popular Services</div>
+			<div class="service-tags">
+			  ${(influencer.services || [])
+				.slice(0, 3)
+				.map(
+				  s =>
+					`<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${
+					  s.priceUnit ? '/' + s.priceUnit : ''
+					}</span></div>`
+				)
+				.join('')}
+			</div>
+		  </div>
+		  <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">
+			View Full Profile <span class="arrow-icon">→</span>
+		  </a>
+		</div>
+	  `;
+	}
+
 
     function getTotalFollowers(socialPlatforms){ if(!socialPlatforms) return 0; return Object.values(socialPlatforms).reduce((s,c)=>s+(c||0),0) }
     function formatFollowers(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); }
