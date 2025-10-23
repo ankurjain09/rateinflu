@@ -572,7 +572,7 @@
     function createInfluencerCard(influencer){
       const isFav = window.currentUser && window.userFavorites && window.userFavorites[influencer.id];
       const starCls = isFav ? 'star-active' : '';
-return `
+	  return `
         <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
           <div class="fav-star ${isFav?'active':''}" title="Save" onclick="event.stopPropagation(); toggleFavorite('${influencer.id}', this)">☆</div>
           <div class="card-header">
