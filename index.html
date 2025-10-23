@@ -116,6 +116,9 @@
     .category-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
     /* Cards */
+    .fav-star{position:absolute;top:10px;right:10px;font-size:22px;cursor:pointer;user-select:none;color:#e5e7eb;}
+    .fav-star.active{color:#fbbf24;}
+
     .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1.5rem;margin-bottom:3rem}
     .influencer-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);transition:.25s;cursor:pointer;position:relative}
     .influencer-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
@@ -160,6 +163,8 @@
     .modal-section h3{font-size:1.25rem;margin-bottom:.6rem}
     .social-links{display:flex;gap:.5rem;margin-top:.5rem}
     .social-link{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.25);color:#fff;text-decoration:none;font-size:1.1rem;transition:.2s}
+    .social-link .icon{color:#e5e7eb}
+    .social-link:hover .icon{color:#ffffff}
     .social-link:hover{transform:scale(1.06);background:rgba(255,255,255,.35)}
     .social-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
     .social-stat{background:var(--light);padding:.8rem;border-radius:10px;display:flex;justify-content:space-between}
@@ -305,6 +310,8 @@
     <!-- About Page -->
     <div id="aboutPage" class="page-section">
       <h1>About TrustReview</h1>
+      <p style="margin:.5rem 0 1rem;color:var(--gray);max-width:820px;">Our mission is to make the creator economy transparent. We elevate authentic educators and protect buyers from misinformation and scams through verified reviews, signals (verified purchases, longevity, refund stats), and active moderation.</p>
+      <p style="margin:0 0 1.2rem;color:var(--gray);max-width:820px;">Profiles with <strong>Verified ✓</strong> are approved by admins and flagged for consistent, positive reviewer signals. We never sell placements or accept undisclosed sponsorships.</p>
       <p style="margin: .5rem 0 1rem; color: var(--gray); max-width: 820px;">
         TrustReview is a community-driven platform where real customers review and verify influencers,
         coaches, and online courses. Our goal is to bring <strong>transparency</strong> to the creator economy by
@@ -332,6 +339,7 @@
   <div class="modal-overlay" id="profileModal">
     <div class="profile-modal">
       <div class="modal-header">
+        <div id="modalFav" class="fav-star" style="right:56px;top:16px;position:absolute;">☆</div>
         <button class="close-modal" onclick="closeProfile()">×</button>
         <div class="modal-profile">
           <div class="modal-profile-image" id="modalAvatar">JD</div>
@@ -400,6 +408,35 @@
     let currentInfluencerId = null;
     let selectedRating = 0;
 
+    // Favorites store
+    window.userFavorites = {};
+    async function loadFavorites(){
+      if(!currentUser) { window.userFavorites = {}; return; }
+      try{
+        const favCol = window.firebaseCollection(window.firebaseDB,'users', currentUser.uid, 'favorites');
+        const snap = await window.firebaseGetDocs(favCol);
+        const map = {};
+        snap.forEach(d=>{ map[d.id]=true; });
+        window.userFavorites = map;
+      }catch(e){ console.warn('favorites load failed', e); }
+    }
+    async function toggleFavorite(infId, el){
+      if(!currentUser){ alert('Please sign in'); return; }
+      const ref = window.firebaseDoc(window.firebaseDB, 'users', currentUser.uid, 'favorites', infId);
+      try{
+        if(window.userFavorites[infId]){
+          await window.firebaseDeleteDoc(ref);
+          delete window.userFavorites[infId];
+          if(el) el.classList.remove('active');
+        }else{
+          await window.firebaseSetDoc(ref, { addedAt: window.firebaseServerTimestamp() }, { merge:true });
+          window.userFavorites[infId] = true;
+          if(el) el.classList.add('active');
+        }
+      }catch(e){ console.error('fav toggle failed', e); }
+    }
+
+
     // Page navigation
     function showPage(pageName) {
       document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -426,7 +463,8 @@
         currentUser = user;
         updateAuthUI(user);
         updateReviewForm(user);
-        if (!influencersData.length) await loadInfluencers();
+        await loadFavorites();
+        if (!influencersData.length) await loadInfluencers(); else displayInfluencers(influencersData);
 
         // Auto-create users/{uid} profile doc on sign in
         if (user) {
@@ -452,8 +490,9 @@
     window.addEventListener('firebaseLoaded', initializeApp);
 
     async function handleSignIn(){
-      try{ await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider); }
-      catch(e){ console.error(e); alert('Failed to sign in. Please try again.'); }
+      // Open unified auth modal (Email/Password + Google)
+      const m = document.getElementById('authEmailModal');
+      if (m) m.style.display = 'flex';
     }
     async function handleSignOut(){
       try{ await window.firebaseSignOut(window.firebaseAuth); closeMenu(); }
@@ -531,13 +570,11 @@
     }
 
     function createInfluencerCard(influencer){
-      const stats = influencer.stats||{};
-      const rating = (typeof stats.rating === 'number') ? stats.rating.toFixed(1) : '4.5';
-      const revCount = formatNumber(stats.reviewCount||0);
-      const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
-
-      return `
+      const isFav = window.currentUser && window.userFavorites && window.userFavorites[influencer.id];
+      const starCls = isFav ? 'star-active' : '';
+return `
         <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+          <div class="fav-star ${isFav?'active':''}" title="Save" onclick="event.stopPropagation(); toggleFavorite('${influencer.id}', this)">☆</div>
           <div class="card-header">
             <div class="card-profile">
               <div class="profile-image">
@@ -562,7 +599,7 @@
               ${(influencer.services||[]).slice(0,3).map(s=>`<div class="service-tag">${s.title} • <span class="service-price">$${s.price}${s.priceUnit?'/'+s.priceUnit:''}</span></div>`).join('')}
             </div>
           </div>
-          <div class="card-action">View Full Profile <span class="arrow-icon">→</span></div>
+          <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">View Full Profile <span class="arrow-icon">→</span></a>
         </div>
       `;
     }
@@ -570,7 +607,22 @@
     function getTotalFollowers(socialPlatforms){ if(!socialPlatforms) return 0; return Object.values(socialPlatforms).reduce((s,c)=>s+(c||0),0) }
     function formatFollowers(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); }
     function formatNumber(n){ if(n>=1e3) return (n/1e3).toFixed(1)+'k'; return n.toString(); }
-    function getSocialIcon(p){ const i={instagram:'📷',tiktok:'🎵',youtube:'📺',twitter:'🐦',facebook:'👍'}; return i[(p||'').toLowerCase()]||'🔗'; }
+    
+    function getSocialIcon(p){
+      const k = (p||'').toLowerCase();
+      const c = '#64748b';
+      const svg = {
+        instagram: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg>`,
+        tiktok: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 3h3a5 5 0 0 0 5 5v3a8 8 0 1 1-8-8z"/></svg>`,
+        youtube: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1C4.5 20.5 12 20.5 12 20.5s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.75 15.5v-7l6.5 3.5-6.5 3.5z"/></svg>`,
+        twitter: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 12 8v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83z"/></svg>`,
+        facebook:`<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.2 3-3.2.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.2l-.3 3h-1.9v7A10 10 0 0 0 22 12"/></svg>`,
+        linkedin:`<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.2 2.5-2.4 5.1-2.4 5.5 0 6.5 3.6 6.5 8.2V24h-5v-7c0-1.7 0-3.9-2.4-3.9s-2.7 1.8-2.7 3.8V24h-5V8z"/></svg>`,
+        website: `<svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`
+      };
+      return svg[k] || svg['website'];
+    }
+; return i[(p||'').toLowerCase()]||'🔗'; }
 
     // Profile modal logic
     async function viewInfluencerProfile(influencerId){
@@ -583,6 +635,7 @@
       const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
       document.getElementById('modalInfo').textContent = `${influencer.niche||'General'} • ${followers} followers${influencer.verified?' • Verified ✓':''}`;
       document.getElementById('modalBio').textContent = influencer.bio || 'No bio available';
+      const mFav = document.getElementById('modalFav'); if(mFav){ mFav.onclick = (e)=>{ e.stopPropagation(); toggleFavorite(influencer.id, mFav); }; if(window.userFavorites[influencer.id]) mFav.classList.add('active'); else mFav.classList.remove('active'); }
 
       const socialLinksHTML = influencer.socialLinks ? Object.entries(influencer.socialLinks).map(([p,url])=>`<a href="${url}" target="_blank" class="social-link" title="${p}">${getSocialIcon(p)}</a>`).join('') : '';
       document.getElementById('socialLinks').innerHTML = socialLinksHTML;
@@ -896,6 +949,11 @@
       // If direct link ?page=...
       const params=new URLSearchParams(window.location.search);
       const p=params.get('page'); if(p) showPage(p);
+
+      // Auto-open profile when coming from new tab link (?inf=<id>)
+      const inf = params.get('inf');
+      if (inf) { viewInfluencerProfile(inf); }
+
     });
   </script>
 
@@ -914,6 +972,7 @@
         <input id="passwordInput" type="password" placeholder="Password" required style="width:100%;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px;margin:.5rem 0"/>
         <button id="emailAuthSubmit" class="btn-primary" type="submit" style="width:100%;padding:.8rem;border:none;border-radius:10px;">Continue</button>
       </form>
+      <button id="googleAuthBtn" class="btn-primary" type="button" style="width:100%;padding:.8rem;border:none;border-radius:10px;margin-top:.6rem;background:#ef4444">Continue with Google</button>
       <p id="emailAuthStatus" style="margin-top:.75rem;color:#64748b"></p>
     </div>
   </div>
@@ -926,7 +985,13 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
           <input id="si_name" placeholder="Name" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
           <input id="si_niche" placeholder="Niche (Fitness, Trading)" required style="padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
-          <input id="si_social" placeholder="Primary Social URL" required style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_instagram" placeholder="Instagram URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_tiktok" placeholder="TikTok URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_youtube" placeholder="YouTube URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_facebook" placeholder="Facebook URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_linkedin" placeholder="LinkedIn URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_twitter" placeholder="X/Twitter URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
+          <input id="si_website" placeholder="Website URL" style="grid-column:1/-1;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"/>
           <textarea id="si_bio" placeholder="Short bio" required style="grid-column:1/-1;height:100px;padding:.7rem;border:1px solid #e5e7eb;border-radius:8px"></textarea>
         </div>
         <button class="btn-primary" type="submit" style="margin-top:1rem;padding:.8rem 1.2rem;border:none;border-radius:10px;">Submit</button>
@@ -1048,6 +1113,24 @@
         status.textContent = '❌ '+(err.message||'Auth failed');
       }
     };
+    // Google sign-in inside modal
+    const gbtn = document.getElementById('googleAuthBtn');
+    if (gbtn && !gbtn.dataset.bound){
+      gbtn.dataset.bound = '1';
+      gbtn.onclick = async ()=>{
+        const status = document.getElementById('emailAuthStatus');
+        status.textContent = 'Opening Google...';
+        try{
+          await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
+          status.textContent = '✅ Signed in with Google';
+          setTimeout(()=>{ document.getElementById('authEmailModal').style.display='none'; }, 400);
+        }catch(err){
+          console.error(err);
+          status.textContent = '❌ '+(err.message||'Google sign-in failed');
+        }
+      };
+    }
+
 
     // --- Submit Influencer ---
     function openSubmitInfluencer(){
@@ -1064,7 +1147,15 @@
       const payload = {
         name: document.getElementById('si_name').value.trim(),
         niche: document.getElementById('si_niche').value.trim(),
-        mainSocial: document.getElementById('si_social').value.trim(),
+        socialLinks: {
+        instagram: (document.getElementById('si_instagram')||{}).value?.trim() || '',
+        tiktok: (document.getElementById('si_tiktok')||{}).value?.trim() || '',
+        youtube: (document.getElementById('si_youtube')||{}).value?.trim() || '',
+        facebook: (document.getElementById('si_facebook')||{}).value?.trim() || '',
+        linkedin: (document.getElementById('si_linkedin')||{}).value?.trim() || '',
+        twitter: (document.getElementById('si_twitter')||{}).value?.trim() || '',
+        website: (document.getElementById('si_website')||{}).value?.trim() || ''
+      },
         bio: document.getElementById('si_bio').value.trim(),
         verified: false,
         approved: false,
