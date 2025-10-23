@@ -219,7 +219,7 @@
       <div class="nav-links">
         <a class="nav-link active" data-page="browse" onclick="showPage('browse')">Browse</a>
         <a class="nav-link" data-page="about" onclick="showPage('about')">About</a>
-        <div id="authContainer"><button class="auth-button" id="signInBtn" onclick="handleSignIn()">Sign in with Google</button></div>
+        <div id="authContainer"><button class="auth-button" id="signInBtn" id="signInBtn">Sign in with Google</button></div>
       </div>
     </div>
   </nav>
@@ -268,7 +268,7 @@
       <h1 style="margin-bottom:1rem;">My Reviews</h1>
       <div id="myReviewsAuth" class="auth-prompt" style="display:none">
         Please sign in to view and manage your reviews.
-        <div style="margin-top:.6rem"><button class="auth-button" onclick="handleSignIn()">Sign in with Google</button></div>
+        <div style="margin-top:.6rem"><button class="auth-button" id="signInBtn">Sign in with Google</button></div>
       </div>
       <div id="myReviewsList">
         <div class="loading-container"><div class="spinner"></div></div>
@@ -280,7 +280,7 @@
       <h1 style="margin-bottom:1rem;">Profile Settings</h1>
       <div id="profileAuth" class="auth-prompt" style="display:none">
         Please sign in to manage your profile.
-        <div style="margin-top:.6rem"><button class="auth-button" onclick="handleSignIn()">Sign in with Google</button></div>
+        <div style="margin-top:.6rem"><button class="auth-button" id="signInBtn">Sign in with Google</button></div>
       </div>
 
       <div id="profileCard" style="display:none;background:#fff;border:1px solid var(--light);box-shadow:var(--shadow);border-radius:16px;padding:1rem;max-width:720px;">
@@ -445,8 +445,8 @@
                 email: user.email || '',
                 photoURL: user.photoURL || '',
                 lastUpdated: window.firebaseServerTimestamp()
-} catch(e) {}
-              });
+}
+);
 }
 /* removed stray catch */
 
@@ -475,9 +475,8 @@
           if (data.stats){
             totalReviews += data.stats.reviewCount || 0;
             if (data.stats.rating){ totalRating += data.stats.rating; ratingCount++; }
-} catch(e) {}
 }
-        document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
+document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
         document.getElementById('avgRating').textContent = ratingCount>0 ? `${(totalRating/ratingCount).toFixed(1)} Average Rating` : '4.5 Average Rating';
         displayInfluencers(influencersData);
       }
@@ -504,7 +503,7 @@
   const followers = formatFollowers(getTotalFollowers(influencer.socialPlatforms));
 
   return `
-    <div class="influencer-card" onclick="viewInfluencerProfile('${influencer.id}')">
+    <div class="influencer-card" >
       <div class="card-header">
         <div class="card-profile">
           <div class="profile-image">
@@ -532,7 +531,7 @@
           ).join('')}
         </div>
       </div>
-      <a class="card-action" href="?inf=${influencer.id}" target="_blank" onclick="event.stopPropagation()">
+      <a class="card-action" href="?inf=${influencer.id}" target="_blank" >
         View Full Profile <span class="arrow-icon">→</span>
       </a>
     </div>
@@ -588,8 +587,8 @@
               </div>
             </div>
           `;
-} catch(e) {}
-        }).join('');
+}
+).join('');
         document.getElementById('servicesContent').innerHTML = servicesHTML || '<p style="color:var(--gray);">No services available</p>';
 
         const reviewsRef = window.firebaseCollection(influencerDocRef,'reviews');
@@ -650,8 +649,8 @@
           title:document.getElementById('reviewTitle').value, text:document.getElementById('reviewText').value,
           userName:currentUser.displayName, userEmail:currentUser.email, userId:currentUser.uid,
           createdAt:window.firebaseServerTimestamp(), verified:false, helpful:0
-} catch(e) {}
-        });document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
+}
+);document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
         await viewInfluencerProfile(currentInfluencerId);
       }
 /* removed stray catch */
@@ -698,10 +697,9 @@
           q = window.firebaseQuery(
             cg,
             window.firebaseWhere('userId','==',currentUser.uid),
-            window.firebaseOrderBy('createdAt','desc')
-          );
-} catch(e) {}
-        } catch (err) {
+            window.firebaseOrderBy('createdAt','desc');
+}
+catch (err) {
           console.warn('Index missing, using fallback (no sort).', err);
           q = window.firebaseQuery(cg, window.firebaseWhere('userId','==',currentUser.uid));
         }
@@ -737,7 +735,7 @@
                   <div style="color:var(--gray);font-size:.9rem;margin-top:.35rem;">${date}</div>
                 </div>
                 <div style="display:flex;gap:.5rem;height:fit-content">
-                  <button class="btn-primary" style="background:#fff;color:var(--primary);border:2px solid var(--primary)}" onclick="viewInfluencerProfile('${infId}')">Open Profile</button>
+                  <button class="btn-primary" style="background:#fff;color:var(--primary);border:2px solid var(--primary)}" >Open Profile</button>
                   <button class="btn-primary" style="background:var(--danger);border:none" onclick="deleteReview('${reviewIdPath.replace(/'/g,'\\\'')}')">Delete</button>
                 </div>
               </div>
@@ -757,8 +755,7 @@
         if (seg.length!==4){return; }
         const ref = window.firebaseDoc(window.firebaseDB, seg[0], seg[1], seg[2], seg[3]);
         await window.firebaseDeleteDoc(ref);loadMyReviews();
-} catch(e) {}
-      }
+}
 /* removed stray catch */
 
     }
@@ -786,8 +783,8 @@
         if (usnap.exists()) {
           const data = usnap.data();
           nameField.value = data.displayName || currentUser.displayName || '';
-} catch(e) {}
-        } else {
+}
+else {
           nameField.value = currentUser.displayName || '';
 }
 /* removed stray catch */
@@ -808,8 +805,8 @@
             email: currentUser.email || '',
             photoURL: currentUser.photoURL || '',
             lastUpdated: window.firebaseServerTimestamp()
-} catch(e) {}
-          }, { merge: true });
+}
+, { merge: true });
           // Reflect in UI
           document.getElementById('profileName').textContent = newName;
           status.textContent = '✅ Saved successfully';
@@ -937,8 +934,8 @@
       try {
         const snap = await getDoc(doc(db,'users',uid));
         return snap.exists() ? (snap.data().role || 'user') : 'user';
-} catch(e) {}
-      }catch(e){ console.warn('role fetch failed', e); return 'user'; }
+}
+catch(e){ console.warn('role fetch failed', e); return 'user'; }
     }
     function ensureMenuExtras(role){
   const menu = document.getElementById('userMenu');
@@ -1046,8 +1043,8 @@
         await window.firebaseAddDoc(window.firebaseCollection(db,'pendingInfluencers'), payload);
         status.textContent = '✅ Submitted for review';
         (e.target).reset();
-} catch(e) {}
-      }catch(err){status.textContent = '❌ '+(err.message||'Failed');
+}
+catch(err){status.textContent = '❌ '+(err.message||'Failed');
 };
 
     // --- Admin Panel ---
@@ -1142,7 +1139,7 @@
               <div style="color:#64748b">${inf.bio||''}</div>
             </div>
             <div style="display:flex;gap:.5rem">
-              <button onclick="viewInfluencerProfile('${iid}')" class="btn-primary" style="padding:.5rem .8rem;border:none;border-radius:10px;">View</button>
+              <button  class="btn-primary" style="padding:.5rem .8rem;border:none;border-radius:10px;">View</button>
               <button onclick="(async()=>{ await deleteDoc(window.firebaseDoc(window.firebaseDB,'users','${user.uid}','savedInfluencers','${iid}')); openSaved(); })()" style="padding:.5rem .8rem;border:1px solid #e5e7eb;border-radius:10px;background:#fff">Unsave</button>
             </div>
           </div>
@@ -1165,6 +1162,20 @@
       nav.appendChild(btn);
     })();
   </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const signBtn = document.getElementById('signInBtn');
+  if (signBtn) signBtn.addEventListener('click', handleSignIn);
+
+  document.querySelectorAll('.influencer-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const id = card.getAttribute('data-id') || card.dataset.id;
+      if (id) viewInfluencerProfile(id);
+    });
+  });
+});
+</script>
 
 </body>
 </html>
