@@ -683,8 +683,8 @@
     // Submit review
     async function submitReview(e){
       e.preventDefault();
-      if(!currentUser || !currentInfluencerId){ alert('Please sign in to submit a review'); return; }
-      if(selectedRating===0){ alert('Please select a rating'); return; }
+      if(!currentUser || !currentInfluencerId){return; }
+      if(selectedRating===0){return; }
       const btn=document.getElementById('submitReviewBtn'); btn.disabled=true; btn.textContent='Submitting...';
       try{
         const influencerDocRef = window.firebaseDoc(window.firebaseDB,'influencers',currentInfluencerId);
@@ -694,9 +694,7 @@
           title:document.getElementById('reviewTitle').value, text:document.getElementById('reviewText').value,
           userName:currentUser.displayName, userEmail:currentUser.email, userId:currentUser.uid,
           createdAt:window.firebaseServerTimestamp(), verified:false, helpful:0
-        });
-        alert('Review submitted successfully!');
-        document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
+        });document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
         await viewInfluencerProfile(currentInfluencerId);
       }
 /* removed stray catch */
@@ -798,11 +796,9 @@
       if(!confirm('Delete this review? This cannot be undone.')) return;
       try{
         const seg = path.split('/');
-        if (seg.length!==4){ alert('Invalid review path.'); return; }
+        if (seg.length!==4){return; }
         const ref = window.firebaseDoc(window.firebaseDB, seg[0], seg[1], seg[2], seg[3]);
-        await window.firebaseDeleteDoc(ref);
-        alert('Review deleted.');
-        loadMyReviews();
+        await window.firebaseDeleteDoc(ref);loadMyReviews();
       }
 /* removed stray catch */
 
@@ -840,7 +836,7 @@
       const status = document.getElementById('saveStatus');
       saveBtn.onclick = async ()=>{
         const newName = document.getElementById('displayNameInput').value.trim();
-        if (!newName) { alert('Please enter a display name'); return; }
+        if (!newName) {return; }
         saveBtn.disabled = true; status.style.display='inline'; status.textContent='Saving…';
         try {
           // Update Firebase Auth profile (displayName)
@@ -1055,7 +1051,7 @@
     // --- Submit Influencer ---
     function openSubmitInfluencer(){
       const user = auth.currentUser;
-      if(!user){ alert('Please sign in to submit.'); return; }
+      if(!user){return; }
       document.getElementById('submitInfluencerModal').style.display='flex';
     }
     window.openSubmitInfluencer = openSubmitInfluencer;
@@ -1063,7 +1059,7 @@
     document.getElementById('submitInfluencerForm').onsubmit = async (e)=>{
       e.preventDefault();
       const user = auth.currentUser;
-      if(!user){ alert('Please sign in.'); return; }
+      if(!user){return; }
       const payload = {
         name: document.getElementById('si_name').value.trim(),
         niche: document.getElementById('si_niche').value.trim(),
@@ -1088,15 +1084,14 @@
         await window.firebaseAddDoc(window.firebaseCollection(db,'pendingInfluencers'), payload);
         status.textContent = '✅ Submitted for review';
         (e.target).reset();
-      }catch(err){
-        console.error(err); status.textContent = '❌ '+(err.message||'Failed');
+      }catch(err){status.textContent = '❌ '+(err.message||'Failed');
 };
 
     // --- Admin Panel ---
     async function openAdminPanel(){
       const user = auth.currentUser;
       const role = user ? (window.currentUserRole || await getUserRole(user.uid)) : 'guest';
-      if (role!=='admin'){ alert('You do not have permission.'); return; }
+      if (role!=='admin'){return; }
       document.getElementById('adminPanelModal').style.display='flex';
       loadPending();
     }
@@ -1149,8 +1144,8 @@
       btn.style = 'margin-left:auto;border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:.4rem .7rem;cursor:pointer';
       btn.onclick = async ()=>{
         const user = auth.currentUser;
-        if(!user){ alert('Please sign in.'); return; }
-        if(!window.currentInfluencerId){ alert('Open an influencer profile first.'); return; }
+        if(!user){return; }
+        if(!window.currentInfluencerId){return; }
         await setDoc(doc(db, 'users', user.uid, 'savedInfluencers', window.currentInfluencerId), { savedAt: serverTimestamp() }, { merge:true });
         btn.textContent = '✅ Saved';
         setTimeout(()=>{ btn.textContent='💾 Save Influencer'; }, 1500);
