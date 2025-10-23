@@ -445,6 +445,7 @@
                 email: user.email || '',
                 photoURL: user.photoURL || '',
                 lastUpdated: window.firebaseServerTimestamp()
+} catch(e) {}
               });
 }
 /* removed stray catch */
@@ -458,58 +459,11 @@
     }
     window.addEventListener('firebaseLoaded', initializeApp);
 
-    async function handleSignIn(){
-  try {
-    if (!window.googleProvider) {
-      window.googleProvider = new window.firebaseGoogleAuthProvider();
-    }
-    await window.firebaseSignInWithPopup(window.firebaseAuth, window.googleProvider);
-  }
-/* removed stray catch */
-
-}
-
-    // Avatar dropdown UI
-    function updateAuthUI(user){
-      const authContainer = document.getElementById('authContainer');
-      if (!user){
-        authContainer.innerHTML = '<button class="auth-button" id="signInBtn" onclick="handleSignIn()">Sign in with Google</button>';
-        return;
-      }
-      const initial = user.displayName?.charAt(0)?.toUpperCase() || 'U';
-      const img = user.photoURL ? `<img src="${user.photoURL}" alt="${user.displayName}"/>` : initial;
-
-      authContainer.innerHTML = `
-        <div class="user-info">
-          <div class="user-avatar" id="avatarBtn">${img}</div>
-          <div class="menu" id="userMenu">
-            <button onclick="showPage('my-reviews'); closeMenu()">📝 My Reviews</button>
-            <button onclick="showPage('profile-settings'); closeMenu()">⚙️ Profile Settings</button>
-            <hr/>
-            <button onclick="handleSignOut()">🚪 Sign Out</button>
-          </div>
-        </div>
-      `;
-
-      const avatar = document.getElementById('avatarBtn');
-      const menu = document.getElementById('userMenu');
-      avatar.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('open'); };
-      document.addEventListener('click', closeMenu);
-    }
-    function closeMenu(){ const m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); }
-
-    // Review form gating by auth
-    function updateReviewForm(user){
-      const authPrompt = document.getElementById('authPrompt');
-      const reviewForm = document.getElementById('reviewForm');
-      if (!authPrompt || !reviewForm) return;
-      if (user){ authPrompt.style.display='none'; reviewForm.style.display='block'; }
-      else { authPrompt.style.display='block'; reviewForm.style.display='none'; }
-    }
+    
 
     // Load influencers
     async function loadInfluencers(){
-      try{
+      try {
         const influencersRef = window.firebaseCollection(window.firebaseDB,'influencers');
         const snapshot = await window.firebaseGetDocs(influencersRef);
         influencersData = [];
@@ -521,6 +475,7 @@
           if (data.stats){
             totalReviews += data.stats.reviewCount || 0;
             if (data.stats.rating){ totalRating += data.stats.rating; ratingCount++; }
+} catch(e) {}
 }
         document.getElementById('totalReviews').textContent = `${formatNumber(totalReviews)} Verified Reviews`;
         document.getElementById('avgRating').textContent = ratingCount>0 ? `${(totalRating/ratingCount).toFixed(1)} Average Rating` : '4.5 Average Rating';
@@ -610,7 +565,7 @@
       `).join('') : '<p style="color:var(--gray);">No social media data available</p>';
       document.getElementById('socialStats').innerHTML = socialStatsHTML;
 
-      try{
+      try {
         const influencerDocRef = window.firebaseDoc(window.firebaseDB,'influencers',influencerId);
         const servicesRef = window.firebaseCollection(influencerDocRef,'services');
         const servicesSnapshot = await window.firebaseGetDocs(servicesRef);
@@ -633,6 +588,7 @@
               </div>
             </div>
           `;
+} catch(e) {}
         }).join('');
         document.getElementById('servicesContent').innerHTML = servicesHTML || '<p style="color:var(--gray);">No services available</p>';
 
@@ -686,7 +642,7 @@
       if(!currentUser || !currentInfluencerId){return; }
       if(selectedRating===0){return; }
       const btn=document.getElementById('submitReviewBtn'); btn.disabled=true; btn.textContent='Submitting...';
-      try{
+      try {
         const influencerDocRef = window.firebaseDoc(window.firebaseDB,'influencers',currentInfluencerId);
         const reviewsRef = window.firebaseCollection(influencerDocRef,'reviews');
         await window.firebaseAddDoc(reviewsRef,{
@@ -694,6 +650,7 @@
           title:document.getElementById('reviewTitle').value, text:document.getElementById('reviewText').value,
           userName:currentUser.displayName, userEmail:currentUser.email, userId:currentUser.uid,
           createdAt:window.firebaseServerTimestamp(), verified:false, helpful:0
+} catch(e) {}
         });document.getElementById('reviewForm').reset(); selectedRating=0; updateStarDisplay();
         await viewInfluencerProfile(currentInfluencerId);
       }
@@ -734,7 +691,7 @@
       authGate.style.display='none';
       list.innerHTML = `<div class="loading-container"><div class="spinner"></div></div>`;
 
-      try{
+      try {
         const cg = window.firebaseCollectionGroup(window.firebaseDB,'reviews');
         let q;
         try {
@@ -743,6 +700,7 @@
             window.firebaseWhere('userId','==',currentUser.uid),
             window.firebaseOrderBy('createdAt','desc')
           );
+} catch(e) {}
         } catch (err) {
           console.warn('Index missing, using fallback (no sort).', err);
           q = window.firebaseQuery(cg, window.firebaseWhere('userId','==',currentUser.uid));
@@ -794,11 +752,12 @@
     // Delete review by full path
     async function deleteReview(path){
       if(!confirm('Delete this review? This cannot be undone.')) return;
-      try{
+      try {
         const seg = path.split('/');
         if (seg.length!==4){return; }
         const ref = window.firebaseDoc(window.firebaseDB, seg[0], seg[1], seg[2], seg[3]);
         await window.firebaseDeleteDoc(ref);loadMyReviews();
+} catch(e) {}
       }
 /* removed stray catch */
 
@@ -827,6 +786,7 @@
         if (usnap.exists()) {
           const data = usnap.data();
           nameField.value = data.displayName || currentUser.displayName || '';
+} catch(e) {}
         } else {
           nameField.value = currentUser.displayName || '';
 }
@@ -848,6 +808,7 @@
             email: currentUser.email || '',
             photoURL: currentUser.photoURL || '',
             lastUpdated: window.firebaseServerTimestamp()
+} catch(e) {}
           }, { merge: true });
           // Reflect in UI
           document.getElementById('profileName').textContent = newName;
@@ -973,9 +934,10 @@
 
     // --- Helpers ---
     async function getUserRole(uid){
-      try{
+      try {
         const snap = await getDoc(doc(db,'users',uid));
         return snap.exists() ? (snap.data().role || 'user') : 'user';
+} catch(e) {}
       }catch(e){ console.warn('role fetch failed', e); return 'user'; }
     }
     function ensureMenuExtras(role){
@@ -1080,10 +1042,11 @@
       };
       const status = document.getElementById('submitInfluencerStatus');
       status.textContent = 'Submitting…';
-      try{
+      try {
         await window.firebaseAddDoc(window.firebaseCollection(db,'pendingInfluencers'), payload);
         status.textContent = '✅ Submitted for review';
         (e.target).reset();
+} catch(e) {}
       }catch(err){status.textContent = '❌ '+(err.message||'Failed');
 };
 
